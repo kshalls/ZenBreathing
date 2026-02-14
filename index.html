@@ -7,8 +7,8 @@
     <style>
         :root { --bg: #f8fafb; --navy: #0f2d37; --accent: #2c5364; --text-dim: #636e72; --white: #ffffff; --border: #d1d8db; --red: #e74c3c; }
         body { background: var(--bg); font-family: -apple-system, sans-serif; margin: 0; color: var(--navy); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .header-nav { display: flex; justify-content: space-around; background: var(--white); border-bottom: 1px solid #eee; padding: 10px 0; z-index: 1000; }
-        .nav-tab { padding: 10px 20px; font-weight: bold; color: var(--text-dim); cursor: pointer; font-size: 0.9rem; }
+        .header-nav { position: sticky; top: 0; width: 100%; display: flex; justify-content: space-around; background: var(--white); border-bottom: 1px solid #eee; padding: 12px 0; z-index: 9999; }
+        .nav-tab { padding: 8px 20px; font-weight: bold; color: var(--text-dim); cursor: pointer; font-size: 0.9rem; }
         .nav-tab.active { color: var(--navy); border-bottom: 3px solid var(--navy); }
         .content-area { flex: 1; overflow-y: auto; padding: 20px; text-align: center; }
         .hidden { display: none !important; }
@@ -20,15 +20,13 @@
         .expand { transform: scale(1.4); background: #b0d4de; }
         .recovery-flash { animation: pulse-red 1s infinite; }
         @keyframes pulse-red { 0%, 100% { color: var(--accent); } 50% { color: var(--red); } }
-        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
         .pro-input { background: #ffffff; border: 2px solid var(--border); color: var(--navy); font-weight: bold; font-size: 1.1rem; text-align: center; width: 80px; padding: 10px; border-radius: 12px; outline: none; }
         .btn-action { background: var(--navy); color: white; border: none; width: 100%; padding: 18px; border-radius: 15px; font-size: 1.1rem; font-weight: bold; margin-top: 20px; }
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .stat-card { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .stat-val { display: block; font-size: 1.2rem; font-weight: bold; color: var(--accent); }
-        .stat-lab { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; }
         .history-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; text-align: left; }
-        .del-btn { color: var(--red); border: 1px solid #fee2e2; background: #fff5f5; padding: 5px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: bold; }
+        .del-btn { color: var(--red); border: 1px solid #fee2e2; background: #fff5f5; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -40,19 +38,18 @@
 
 <div id="view-practice" class="content-area">
     <div class="hex-container" id="bubble">0</div>
-    <div id="round-info" style="font-weight: bold; color: var(--accent);">Tap Start</div>
-    <div class="setting-row"><span>Rounds</span><input type="number" id="in-rounds" class="pro-input" value="3" inputmode="numeric"></div>
-    <div class="setting-row"><span>Breaths</span><input type="number" id="in-breaths" class="pro-input" value="30" inputmode="numeric"></div>
-    <h4 id="status-display" style="color:var(--text-dim); margin:20px 0;">Audio will unlock on Start</h4>
+    <div id="round-info" style="font-weight: bold; color: var(--accent);">Ready</div>
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee;"><span>Rounds</span><input type="number" id="in-rounds" class="pro-input" value="3" inputmode="numeric"></div>
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee;"><span>Breaths</span><input type="number" id="in-breaths" class="pro-input" value="30" inputmode="numeric"></div>
     <button class="btn-action" id="mainBtn">Start Session</button>
 </div>
 
 <div id="view-stats" class="content-area hidden">
     <div class="stat-grid">
-        <div class="stat-card"><span class="stat-val" id="val-total">0</span><span class="stat-lab">Total Hold (m)</span></div>
-        <div class="stat-card"><span class="stat-val" id="val-best">0s</span><span class="stat-lab">Personal Best</span></div>
-        <div class="stat-card"><span class="stat-val" id="val-streak">0</span><span class="stat-lab">Daily Streak</span></div>
-        <div class="stat-card"><span class="stat-val" id="val-weekly">0/7</span><span class="stat-lab">Weekly Goal</span></div>
+        <div class="stat-card"><span class="stat-val" id="val-total">0</span><span>Holds (m)</span></div>
+        <div class="stat-card"><span class="stat-val" id="val-best">0s</span><span>Best</span></div>
+        <div class="stat-card"><span class="stat-val" id="val-streak">0</span><span>Streak</span></div>
+        <div class="stat-card"><span class="stat-val" id="val-weekly">0/7</span><span>Weekly</span></div>
     </div>
     <div id="history-box"></div>
 </div>
@@ -64,17 +61,11 @@
 <audio id="snd-gong" preload="auto" src="https://actions.google.com/sounds/v1/percussion/gong.ogg"></audio>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('zen_v14')) || { history: [], best: 0, totalHold: 0, streak: 0, lastDate: null, weeklyLogs: [] };
-    let breathCount = 0; let curRound = 1; let speed = 2000;
-    let isActive = false; let isHolding = false; let holdStart;
+    let db = JSON.parse(localStorage.getItem('zen_v16')) || { history: [], best: 0, totalHold: 0, streak: 0, lastDate: null, weeklyLogs: [] };
+    let breathCount = 0, curRound = 1, speed = 2000, isActive = false, isHolding = false, holdStart;
 
-    const mainBtn = document.getElementById('mainBtn');
-    const bubble = document.getElementById('bubble');
-    const inhaleSnd = document.getElementById('snd-inhale');
-    const exhaleSnd = document.getElementById('snd-exhale');
-    const oceanSnd = document.getElementById('snd-ocean');
-    const chimeSnd = document.getElementById('snd-chime');
-    const gongSnd = document.getElementById('snd-gong');
+    const mainBtn = document.getElementById('mainBtn'), bubble = document.getElementById('bubble');
+    const sounds = ["snd-inhale", "snd-exhale", "snd-ocean", "snd-chime", "snd-gong"].map(id => document.getElementById(id));
 
     function switchTab(t) {
         document.getElementById('view-practice').classList.toggle('hidden', t !== 'practice');
@@ -85,12 +76,8 @@
     }
 
     mainBtn.onclick = () => {
-        // FORCE UNLOCK ALL AUDIO ON CLICK
-        const allSounds = [inhaleSnd, exhaleSnd, oceanSnd, chimeSnd, gongSnd];
-        allSounds.forEach(s => {
-            s.play().then(() => { s.pause(); s.currentTime = 0; }).catch(e => console.log("Unlock error", e));
-        });
-
+        // CHROME/SAFARI FORCE UNLOCK
+        sounds.forEach(s => { s.play(); s.pause(); s.currentTime = 0; });
         if (!isActive) { curRound = 1; runBreathing(); }
         else if (isHolding) stopHold();
     };
@@ -98,28 +85,29 @@
     function runBreathing() {
         const maxR = parseInt(document.getElementById('in-rounds').value) || 3;
         const maxB = parseInt(document.getElementById('in-breaths').value) || 30;
-        isActive = true; breathCount = 0; oceanSnd.pause();
+        isActive = true; breathCount = 0; sounds[2].pause();
+        bubble.classList.remove('recovery-flash');
         document.getElementById('round-info').innerText = `ROUND ${curRound} OF ${maxR}`;
         
         let timer = setInterval(() => {
             if (!isActive) { clearInterval(timer); return; }
             breathCount++;
-            const isExpanding = breathCount % 2 !== 0;
-            bubble.classList.toggle('expand', isExpanding);
+            const expanding = breathCount % 2 !== 0;
+            bubble.classList.toggle('expand', expanding);
             bubble.innerText = Math.ceil(breathCount/2);
 
-            if (isExpanding) { inhaleSnd.play(); } 
-            else { exhaleSnd.play(); }
+            if (expanding) { sounds[0].currentTime = 0; sounds[0].play().catch(() => {}); } 
+            else { sounds[1].currentTime = 0; sounds[1].play().catch(() => {}); }
 
             if (breathCount >= (maxB * 2)) { clearInterval(timer); runHold(); }
         }, speed);
     }
 
     function runHold() {
-        chimeSnd.play();
-        setTimeout(() => { if(isHolding) oceanSnd.play(); }, 500);
+        sounds[3].play();
+        setTimeout(() => { if(isHolding) sounds[2].play(); }, 500);
         isHolding = true; holdStart = Date.now();
-        document.getElementById('status-display').innerText = "HOLDING";
+        document.getElementById('round-info').innerText = "HOLDING";
         mainBtn.innerText = "TAP TO INHALE";
         let hTimer = setInterval(() => {
             if (!isHolding) clearInterval(hTimer);
@@ -128,13 +116,13 @@
     }
 
     function stopHold() {
-        isHolding = false; oceanSnd.pause();
+        isHolding = false; sounds[2].pause();
         let holdDuration = Math.floor((Date.now() - holdStart)/1000);
         saveData(holdDuration);
         
         let recoveryLeft = 10;
         bubble.classList.add('recovery-flash');
-        document.getElementById('status-display').innerText = "RECOVERY";
+        document.getElementById('round-info').innerText = "RECOVERY";
         
         let recTimer = setInterval(() => {
             bubble.innerText = recoveryLeft;
@@ -143,7 +131,11 @@
                 clearInterval(recTimer);
                 const maxR = parseInt(document.getElementById('in-rounds').value) || 3;
                 if (curRound < maxR) { curRound++; runBreathing(); }
-                else { isActive = false; gongSnd.play(); document.getElementById('status-display').innerText = "Complete"; bubble.classList.remove('recovery-flash'); bubble.innerText = "Done"; }
+                else { 
+                    isActive = false; sounds[4].play(); 
+                    document.getElementById('round-info').innerText = "Session Done"; 
+                    bubble.classList.remove('recovery-flash'); bubble.innerText = "Done"; 
+                }
             }
         }, 1000);
     }
@@ -159,12 +151,12 @@
         db.totalHold += h;
         if (h > db.best) db.best = h;
         db.history.unshift({ id: Date.now(), date: today, hold: h });
-        localStorage.setItem('zen_v14', JSON.stringify(db));
+        localStorage.setItem('zen_v16', JSON.stringify(db));
     }
 
     function deleteItem(id) {
         db.history = db.history.filter(i => i.id !== id);
-        localStorage.setItem('zen_v14', JSON.stringify(db));
+        localStorage.setItem('zen_v16', JSON.stringify(db));
         renderStats();
     }
 
@@ -173,8 +165,11 @@
         document.getElementById('val-best').innerText = db.best + 's';
         document.getElementById('val-streak').innerText = db.streak;
         document.getElementById('val-weekly').innerText = `${db.weeklyLogs.length}/7`;
-        const hBox = document.getElementById('history-box');
-        hBox.innerHTML = db.history.slice(0, 15).map(i => `<div class="history-card"><div><span>${i.date}</span><br><strong>${i.hold}s Hold</strong></div><button class="del-btn" onclick="deleteItem(${i.id})">Delete</button></div>`).join('');
+        document.getElementById('history-box').innerHTML = db.history.slice(0, 15).map(i => `
+            <div class="history-card">
+                <div><span>${i.date}</span><br><strong>${i.hold}s Hold</strong></div>
+                <button class="del-btn" onclick="deleteItem(${i.id})">Delete</button>
+            </div>`).join('');
     }
 </script>
 </body>
