@@ -6,90 +6,49 @@
     <title>ZenBreath Pro</title>
     <style>
         :root {
-            --bg: #f8fafb;
-            --navy: #0f2d37;
-            --accent: #2c5364;
-            --text-dim: #636e72;
-            --white: #ffffff;
-            --red: #e74c3c;
+            --bg: #f8fafb; --navy: #0f2d37; --accent: #2c5364;
+            --text-dim: #636e72; --white: #ffffff; --border: #d1d8db;
         }
-
         body {
-            background: var(--bg);
-            font-family: -apple-system, sans-serif;
-            margin: 0; color: var(--navy);
-            display: flex; flex-direction: column; height: 100vh;
+            background: var(--bg); font-family: -apple-system, sans-serif;
+            margin: 0; color: var(--navy); display: flex; flex-direction: column; height: 100vh;
         }
-
-        .nav-bar {
-            display: flex; justify-content: space-around;
-            padding: 15px 0; background: var(--white);
-            border-bottom: 1px solid #eee;
-        }
-        .nav-item { font-size: 0.9rem; font-weight: bold; color: var(--text-dim); cursor: pointer; }
+        .nav-bar { display: flex; justify-content: space-around; padding: 15px 0; background: var(--white); border-bottom: 1px solid #eee; }
+        .nav-item { font-size: 0.9rem; font-weight: bold; color: var(--text-dim); cursor: pointer; padding: 5px 10px; }
         .nav-item.active { color: var(--navy); border-bottom: 2px solid var(--navy); }
-
         .container { flex: 1; padding: 20px; overflow-y: auto; text-align: center; }
-
         .hex-container {
-            width: 120px; height: 120px; background: #d1e3e8;
+            width: 130px; height: 130px; background: #d1e3e8;
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
             margin: 20px auto; display: flex; flex-direction: column; align-items: center; justify-content: center;
             font-size: 2.5rem; color: var(--accent); transition: transform 2s ease-in-out;
         }
-        .expand { transform: scale(1.3); background: #b0d4de; }
-
-        .toggle-group {
-            display: flex; background: #eef2f3; border-radius: 12px;
-            padding: 5px; margin: 20px 0;
-        }
-        .toggle-btn {
-            flex: 1; padding: 10px; border-radius: 10px; border: none;
-            background: transparent; color: var(--text-dim); font-weight: bold;
-        }
+        .expand { transform: scale(1.4); background: #b0d4de; }
+        .toggle-group { display: flex; background: #eef2f3; border-radius: 12px; padding: 5px; margin: 20px 0; }
+        .toggle-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; background: transparent; color: var(--text-dim); font-weight: bold; font-size: 0.8rem; }
         .toggle-btn.active { background: var(--navy); color: white; }
-
-        .setting-row {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 0; border-bottom: 1px solid #eee;
-        }
-        
-        /* Fixed Input Styling to ensure they are clickable */
-        .pro-input {
-            background: #eef2f3; border: 1px solid #ddd; color: var(--navy);
-            font-weight: bold; font-size: 1.1rem; text-align: center; 
-            width: 60px; padding: 5px; border-radius: 8px; outline: none;
-        }
-
-        .start-btn {
-            background: var(--navy); color: white; border: none;
-            width: 100%; padding: 18px; border-radius: 15px;
-            font-size: 1.1rem; font-weight: bold; margin-top: 30px;
-        }
-
-        /* History Styling with Delete button */
-        .history-card {
-            background: white; padding: 15px; border-radius: 15px;
-            margin-bottom: 10px; display: flex; justify-content: space-between;
-            align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        .delete-btn {
-            background: var(--red); color: white; border: none;
-            padding: 5px 10px; border-radius: 5px; font-size: 0.7rem;
-        }
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
+        .pro-input { background: #ffffff; border: 2px solid var(--border); color: var(--navy); font-weight: bold; font-size: 1.1rem; text-align: center; width: 70px; padding: 8px; border-radius: 10px; outline: none; -webkit-appearance: none; }
+        .start-btn { background: var(--navy); color: white; border: none; width: 100%; padding: 18px; border-radius: 15px; font-size: 1.1rem; font-weight: bold; margin-top: 20px; }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .stat-card { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .stat-val { display: block; font-size: 1.2rem; font-weight: bold; color: var(--accent); }
+        .stat-lab { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; }
+        .history-item { background: white; padding: 12px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
+        .delete-btn { color: #e74c3c; border: none; background: none; font-size: 0.7rem; font-weight: bold; }
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
 <div class="nav-bar">
-    <div class="nav-item active" id="nav-practice" onclick="showTab('practice')">Practice</div>
-    <div class="nav-item" id="nav-stats" onclick="showTab('stats')">History</div>
+    <div class="nav-item active" id="nav-p" onclick="showTab('practice')">Practice</div>
+    <div class="nav-item" id="nav-s" onclick="showTab('stats')">Progress</div>
 </div>
 
 <div id="practice-tab" class="container">
     <div class="hex-container" id="bubble">0</div>
-    <div id="round-counter" style="font-size: 0.9rem; color: var(--accent); font-weight: bold;">Ready</div>
+    <div id="round-counter" style="font-weight: bold; color: var(--accent);">Tap Start</div>
 
     <div class="toggle-group">
         <button class="toggle-btn" onclick="setSpeed(3000, this)">Slow</button>
@@ -97,45 +56,47 @@
         <button class="toggle-btn" onclick="setSpeed(1200, this)">Fast</button>
     </div>
 
-    <div class="setting-row">
-        <span>Rounds</span>
-        <input type="number" id="round-input" class="pro-input" value="3" step="1">
-    </div>
-    <div class="setting-row">
-        <span>Breaths per round</span>
-        <input type="number" id="breath-input" class="pro-input" value="30" step="1">
-    </div>
+    <div class="setting-row"><span>Rounds</span><input type="number" id="round-input" class="pro-input" value="3" inputmode="numeric"></div>
+    <div class="setting-row"><span>Breaths</span><input type="number" id="breath-input" class="pro-input" value="30" inputmode="numeric"></div>
 
-    <h4 id="status-text" style="color:var(--text-dim); margin:20px 0;">Start Session</h4>
-    <button class="start-btn" id="mainBtn">Start</button>
+    <h4 id="status-text" style="color:var(--text-dim); margin:15px 0;">Ready?</h4>
+    <button class="start-btn" id="mainBtn">Start Session</button>
 </div>
 
 <div id="stats-tab" class="container hidden">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h3>Session History</h3>
-        <button onclick="clearAllHistory()" class="delete-btn" style="height: fit-content;">Clear All</button>
+    <div class="stat-grid">
+        <div class="stat-card"><span class="stat-val" id="st-total-holds">0</span><span class="stat-lab">Total Hold (m)</span></div>
+        <div class="stat-card"><span class="stat-val" id="st-rounds">0</span><span class="stat-lab">Total Rounds</span></div>
+        <div class="stat-card"><span class="stat-val" id="st-best">0s</span><span class="stat-lab">Personal Best</span></div>
+        <div class="stat-card"><span class="stat-val" id="st-streak">0</span><span class="stat-lab">Day Streak</span></div>
     </div>
+    <h3 style="text-align: left; font-size: 1rem;">Recent Sessions</h3>
     <div id="history-list"></div>
 </div>
 
+<audio id="bg-music" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"></audio>
+<audio id="inhale-sn" src="https://actions.google.com/sounds/v1/human/breath_in.ogg"></audio>
+<audio id="exhale-sn" src="https://actions.google.com/sounds/v1/human/breath_out.ogg"></audio>
 <audio id="gong" src="https://actions.google.com/sounds/v1/percussion/gong.ogg"></audio>
 
 <script>
-    let stats = JSON.parse(localStorage.getItem('whProFinal_v4')) || { history: [] };
-    let breathCount = 0;
-    let currentRound = 1;
-    let speed = 2000;
-    let isActive = false;
-    let holdActive = false;
-    let holdStart;
-    let breathInterval;
+    let stats = JSON.parse(localStorage.getItem('wh_v7_final')) || { history: [], totalSecs: 0, best: 0, streak: 0, lastDate: null };
+    let breathCount = 0; let currentRound = 1; let speed = 2000;
+    let isActive = false; let holdActive = false; let holdStart;
+
+    const mainBtn = document.getElementById('mainBtn');
+    const bubble = document.getElementById('bubble');
+    const bgMusic = document.getElementById('bg-music');
+    const inhaleSn = document.getElementById('inhale-sn');
+    const exhaleSn = document.getElementById('exhale-sn');
+    const gong = document.getElementById('gong');
 
     function showTab(tab) {
         document.getElementById('practice-tab').classList.toggle('hidden', tab !== 'practice');
         document.getElementById('stats-tab').classList.toggle('hidden', tab !== 'stats');
-        document.getElementById('nav-practice').classList.toggle('active', tab === 'practice');
-        document.getElementById('nav-stats').classList.toggle('active', tab === 'stats');
-        if(tab === 'stats') renderHistory();
+        document.getElementById('nav-p').classList.toggle('active', tab === 'practice');
+        document.getElementById('nav-s').classList.toggle('active', tab === 'stats');
+        if(tab === 'stats') renderStats();
     }
 
     function setSpeed(ms, btn) {
@@ -144,49 +105,40 @@
         btn.classList.add('active');
     }
 
-    const mainBtn = document.getElementById('mainBtn');
     mainBtn.onclick = () => {
-        if (!isActive) {
-            currentRound = 1; // Reset to round 1 on new start
-            startSession();
-        } else if (holdActive) {
-            endHold();
-        }
+        // Unlock audio on first interaction
+        [bgMusic, inhaleSn, exhaleSn, gong].forEach(s => { s.play(); s.pause(); });
+        if (!isActive) { currentRound = 1; startSession(); }
+        else if (holdActive) endHold();
     };
 
     function startSession() {
-        const totalRounds = parseInt(document.getElementById('round-input').value);
-        const breathsGoal = parseInt(document.getElementById('breath-input').value);
+        const totalR = parseInt(document.getElementById('round-input').value) || 3;
+        const breathsG = parseInt(document.getElementById('breath-input').value) || 30;
+        isActive = true; breathCount = 0;
+        bgMusic.play();
+        document.getElementById('round-counter').innerText = `ROUND ${currentRound} OF ${totalR}`;
         
-        isActive = true;
-        breathCount = 0;
-        document.getElementById('round-counter').innerText = `Round ${currentRound} of ${totalRounds}`;
-        document.getElementById('status-text').innerText = "Inhale... Exhale...";
-        mainBtn.innerText = "Session Active";
-        
-        breathInterval = setInterval(() => {
-            if (!isActive) { clearInterval(breathInterval); return; }
+        let cycle = setInterval(() => {
+            if (!isActive) { clearInterval(cycle); return; }
             breathCount++;
-            document.getElementById('bubble').classList.toggle('expand');
-            document.getElementById('bubble').innerText = Math.ceil(breathCount/2);
+            bubble.classList.toggle('expand');
+            bubble.innerText = Math.ceil(breathCount/2);
             
-            if (breathCount >= (breathsGoal * 2)) { 
-                clearInterval(breathInterval);
-                startHold();
-            }
+            // Sync Breathing Sound
+            if (breathCount % 2 !== 0) { inhaleSn.play(); } else { exhaleSn.play(); }
+
+            if (breathCount >= (breathsG * 2)) { clearInterval(cycle); startHold(); }
         }, speed);
     }
 
     function startHold() {
-        document.getElementById('gong').play();
-        holdActive = true;
-        holdStart = Date.now();
+        gong.play(); holdActive = true; holdStart = Date.now();
         document.getElementById('status-text').innerText = "HOLD BREATH";
-        mainBtn.innerText = "Inhaling Now";
-        
+        mainBtn.innerText = "TAP TO INHALE";
         let timer = setInterval(() => {
             if (!holdActive) clearInterval(timer);
-            else document.getElementById('bubble').innerText = Math.floor((Date.now() - holdStart)/1000) + 's';
+            else bubble.innerText = Math.floor((Date.now() - holdStart)/1000) + 's';
         }, 1000);
     }
 
@@ -194,56 +146,44 @@
         holdActive = false;
         let holdTime = Math.floor((Date.now() - holdStart)/1000);
         
-        // Save to History
-        stats.history.unshift({ id: Date.now(), date: new Date().toLocaleDateString(), hold: holdTime });
-        localStorage.setItem('whProFinal_v4', JSON.stringify(stats));
-        
-        document.getElementById('gong').play();
+        // Update Stats Logic
+        const today = new Date().toLocaleDateString();
+        if (stats.lastDate !== today) {
+            if (stats.lastDate === new Date(Date.now() - 86400000).toLocaleDateString()) stats.streak++;
+            else stats.streak = 1;
+            stats.lastDate = today;
+        }
+        stats.totalSecs += holdTime;
+        if (holdTime > stats.best) stats.best = holdTime;
+        stats.history.unshift({ id: Date.now(), date: today, hold: holdTime });
+        localStorage.setItem('wh_v7_final', JSON.stringify(stats));
+
+        gong.play();
         document.getElementById('status-text').innerText = "RECOVERY (15s)";
-        
-        // Automatic Round Progression
         setTimeout(() => {
-            const totalRounds = parseInt(document.getElementById('round-input').value);
-            if (currentRound < totalRounds) {
-                currentRound++;
-                startSession(); // Auto-start next round
-            } else {
-                isActive = false;
-                mainBtn.innerText = "Start";
-                document.getElementById('status-text').innerText = "Session Complete!";
-                document.getElementById('bubble').innerText = "0";
-                document.getElementById('round-counter').innerText = "Finished";
-            }
+            const totalR = parseInt(document.getElementById('round-input').value) || 3;
+            if (currentRound < totalR) { currentRound++; startSession(); }
+            else { isActive = false; bgMusic.pause(); document.getElementById('status-text').innerText = "Complete!"; }
         }, 15000);
     }
 
-    function deleteHistory(id) {
-        stats.history = stats.history.filter(item => item.id !== id);
-        localStorage.setItem('whProFinal_v4', JSON.stringify(stats));
-        renderHistory();
-    }
-
-    function clearAllHistory() {
-        if(confirm("Clear all history?")) {
-            stats.history = [];
-            localStorage.setItem('whProFinal_v4', JSON.stringify(stats));
-            renderHistory();
-        }
-    }
-
-    function renderHistory() {
+    function renderStats() {
+        document.getElementById('st-total-holds').innerText = Math.floor(stats.totalSecs / 60);
+        document.getElementById('st-rounds').innerText = stats.history.length;
+        document.getElementById('st-best').innerText = stats.best + 's';
+        document.getElementById('st-streak').innerText = stats.streak;
+        
         const list = document.getElementById('history-list');
-        list.innerHTML = stats.history.length ? '' : '<p>No history yet.</p>';
-        stats.history.forEach(item => {
-            list.innerHTML += `
-                <div class="history-card">
-                    <div>
-                        <span style="font-size:0.8rem; opacity:0.7;">${item.date}</span><br>
-                        <strong>${item.hold}s Hold</strong>
-                    </div>
-                    <button class="delete-btn" onclick="deleteHistory(${item.id})">Delete</button>
-                </div>`;
+        list.innerHTML = '';
+        stats.history.slice(0, 10).forEach(item => {
+            list.innerHTML += `<div class="history-item"><span>${item.date}</span><strong>${item.hold}s</strong><button class="delete-btn" onclick="deleteItem(${item.id})">Del</button></div>`;
         });
+    }
+
+    function deleteItem(id) {
+        stats.history = stats.history.filter(i => i.id !== id);
+        localStorage.setItem('wh_v7_final', JSON.stringify(stats));
+        renderStats();
     }
 </script>
 </body>
