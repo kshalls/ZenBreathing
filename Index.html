@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Zen Breath Pro</title>
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3064/3064339.png">
+    <style>
+        :root { 
+            --primary: #74b9ff; 
+            --bg-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            --text: #2d3436;
+            --card: rgba(255, 255, 255, 0.4);
+        }
+        .dark-mode {
+            --primary: #a29bfe;
+            --bg-gradient: linear-gradient(135deg, #2d3436 0%, #000000 100%);
+            --text: #dfe6e9;
+            --card: rgba(255, 255, 255, 0.15);
+        }
+        body {
+            background: var(--bg-gradient);
+            color: var(--text);
+            font-family: -apple-system, sans-serif;
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; margin: 0; overflow: hidden; transition: all 1s ease;
+        }
+        #app {
+            background: var(--card);
+            backdrop-filter: blur(15px);
+            padding: 1.5rem; border-radius: 40px; text-align: center;
+            width: 85%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .circle-container {
+            width: 160px; height: 160px; border-radius: 50%;
+            background: white; margin: 15px auto;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: transform 2s ease-in-out, background 0.5s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .expand { transform: scale(1.3); background: #e3f2fd; }
+        #timer-val { font-size: 2.5rem; font-weight: 200; }
+        #milestone { font-size: 0.65rem; color: var(--primary); font-weight: bold; height: 10px; }
+        button {
+            width: 100%; padding: 15px; border-radius: 25px; border: none;
+            background: var(--primary); color: white; font-weight: bold;
+            margin-top: 10px; cursor: pointer; font-size: 1rem;
+        }
+        .stats { display: flex; justify-content: space-between; margin-top: 15px; font-size: 0.8rem; }
+        .bar-container { display: flex; align-items: flex-end; height: 35px; gap: 3px; margin: 10px 0; }
+        .bar { flex: 1; background: var(--primary); border-radius: 2px; opacity: 0.6; }
+        #history-list { max-height: 100px; overflow-y: auto; font-size: 0.8rem; text-align: left; margin-top: 10px; }
+        .history-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .dark-toggle { position: absolute; top: 20px; right: 20px; font-size: 1.5rem; cursor: pointer; z-index: 10; }
+    </style>
+</head>
+<body>
+
+<div class="dark-toggle" onclick="document.body.classList.toggle('dark-mode')">🌙</div>
+
+<div id="app">
+    <h2 id="status" style="font-size: 1.2rem; margin: 0;">Zen Breath Pro</h2>
+    <div class="circle-container" id="bubble">
+        <div id="timer-val">0</div>
+        <div id="milestone"></div>
+    </div>
+    
+    <button id="mainBtn">Start Wim Hof Round</button>
+    
+    <div class="stats">
+        <div>Rounds: <span id="s-rounds">0</span></div>
+        <div>Best: <span id="s-best">0s</span></div>
+    </div>
+    <div class="bar-container" id="chart"></div>
+    
+    <div id="history-list"></div>
+
+    <audio id="ambient" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"></audio>
+    <audio id="gong" src="https://actions.google.com/sounds/v1/percussion/gong.ogg"></audio>
+</div>
+
+<script>
+    let stats = JSON.parse(localStorage.getItem('whStatsV3')) || { rounds: 0, best: 0, history: [] };
+    let breathCount = 0;
+    let holdActive = false;
+    let holdStart;
+
+    const mainBtn = document.getElementById('mainBtn');
+    const bubble = document.getElementById('bubble');
+    const status = document.getElementById('status');
+    const timerVal = document.getElementById('timer-val');
+    const milestoneDisplay = document.getElementById('milestone');
+    const gong = document.getElementById('gong');
+    const ambient = document.getElementById('ambient');
+
+    const speak = (msg) => {
+        const utterance = new SpeechSynthesisUtterance(msg);
+        utterance.rate = 0.9;
+        window.speechSynthesis.speak(utterance);
+    };
+
+    function updateUI() {
+        document.getElementById('s-rounds').textContent = stats.rounds;
+        document.getElementById('s-best').textContent = stats.best + 's';
+        
+        // Render Chart
+        const chart = document.getElementById('chart');
+        chart.innerHTML = '';
+        stats.history.slice(0, 10).reverse().forEach(h => {
+            const bar = document.createElement('div');
+            bar.className = 'bar';
+            bar.style.height = (h.hold / (stats.best || 1) * 100) + '%';
+            chart.appendChild(bar);
+        });
+
+        // Render History List
+        const list = document.getElementById('history-list');
+        list.innerHTML = '';
+        stats.history.slice(0, 5).forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.innerHTML = `<span>${item.date}</span><span>${item.hold}s</span>`;
+            list.appendChild(div);
+        });
+
+        localStorage.setItem('whStatsV3', JSON.stringify(stats));
+    }
+
+    mainBtn.onclick = () => {
+        if (!holdActive && breathCount === 0) startBreathing();
+        else if (holdActive) endHold();
+    };
+
+    function startBreathing() {
+        ambient.play();
+        breathCount = 0;
+        status.textContent = "Breathe In... Out...";
+        speak("Fully in, and let it go");
+        
+        let cycle = setInterval(() => {
+            breathCount++;
+            const isInhale = breathCount % 2 !== 0;
+            bubble.classList.toggle('expand');
+            
+            if (isInhale) {
+                timerVal.textContent = Math.ceil(breathCount / 2);
+                if (window.navigator.vibrate) window.navigator.vibrate(50);
+                document.body.style.filter = `hue-rotate(${breathCount * 2}deg)`;
+            }
+
+            if (breathCount >= 60) { 
+                clearInterval(cycle);
+                startHold();
+            }
+        }, 2000);
+    }
+
+    function startHold() {
+        gong.play();
+        holdActive = true;
+        holdStart = Date.now();
+        status.textContent = "STOPWATCH: HOLD";
+        mainBtn.textContent = "I'm Inhaling Now";
+        speak("Exhale, and stop");
+
+        let timer = setInterval(() => {
+            if (!holdActive) clearInterval(timer);
+            else {
+                let seconds = Math.floor((Date.now() - holdStart) / 1000);
+                timerVal.textContent = seconds + 's';
+                if (seconds === 30) milestoneDisplay.textContent = "STILLNESS";
+                if (seconds === 60) milestoneDisplay.textContent = "DEEP PHYSIOLOGY";
+                if (seconds === 90) milestoneDisplay.textContent = "PEAK FLOW";
+            }
+        }, 1000);
+    }
+
+    function endHold() {
+        holdActive = false;
+        gong.play();
+        let holdTime = Math.floor((Date.now() - holdStart) / 1000);
+        const now = new Date();
+        const dateStr = now.toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
+        
+        stats.rounds++;
+        if (holdTime > stats.best) stats.best = holdTime;
+        stats.history.unshift({ date: dateStr, hold: holdTime });
+        
+        status.textContent = "15s RECOVERY";
+        mainBtn.textContent = "Hold Breath In";
+        milestoneDisplay.textContent = "";
+        speak("Recovery breath. Fully in.");
+        
+        updateUI();
+        setTimeout(() => { 
+            status.textContent = "Ready?"; 
+            mainBtn.textContent = "Start Next Round"; 
+            timerVal.textContent = "0";
+            document.body.style.filter = "none";
+        }, 15000);
+    }
+
+    updateUI();
+</script>
+</body>
+</html>
