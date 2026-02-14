@@ -46,6 +46,14 @@
 
         .history-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; text-align: left; }
         .del-btn { color: var(--red); border: 1px solid #fee2e2; background: #fff5f5; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; }
+
+        .breathing-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: left; }
+        .breathing-card h3 { font-size: 1rem; margin-bottom: 10px; }
+        .ret-labels { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 5px; }
+        .ret-bar { height: 30px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; padding: 0 10px; color: white; font-weight: bold; margin-bottom: 10px; }
+        .bottom-stats { display: flex; justify-content: space-between; font-size: 0.9rem; }
+        .bottom-stats span { text-align: center; flex: 1; }
+        .bottom-stats strong { display: block; font-size: 1.1rem; color: var(--accent); }
     </style>
 </head>
 <body>
@@ -73,13 +81,19 @@
 </div>
 
 <div id="view-stats" class="viewport hidden">
+    <div class="breathing-card">
+        <h3>Breathing Basics</h3>
+        <div class="ret-labels"><span>Longest Retention</span><span>Average Retention</span></div>
+        <div class="ret-bar" id="ret-bar"><span id="longest-val">0:00</span><span id="avg-val">0:00</span></div>
+        <div class="bottom-stats">
+            <span>Sessions<br><strong id="sess-val">0</strong></span>
+            <span>Total rounds<br><strong id="round-val">0</strong></span>
+            <span>Total retention<br><strong id="total-val">0h 0m</strong></span>
+        </div>
+    </div>
     <div class="stat-grid">
-        <div class="stat-card"><span class="stat-val" id="val-total">0</span><span class="stat-lab">Total Hold (m)</span></div>
-        <div class="stat-card"><span class="stat-val" id="val-best">0s</span><span class="stat-lab">Best Hold</span></div>
-        <div class="stat-card"><span class="stat-val" id="val-sessions">0</span><span class="stat-lab">Sessions</span></div>
-        <div class="stat-card"><span class="stat-val" id="val-rounds">0</span><span class="stat-lab">Total Rounds</span></div>
         <div class="stat-card"><span class="stat-val" id="val-streak">0</span><span class="stat-lab">Day Streak</span></div>
-        <div class="stat-card"><span class="stat-val" id="val-weekly">0/7</span><span class="stat-lab">Weekly Goal</span></div>
+        <div class="stat-card"><span class="stat-val" id="val-weekly">0/7</span><span class="stat-lab">Weekly Streak</span></div>
     </div>
     <h3 style="text-align: left; font-size: 1rem;">Session History</h3>
     <div id="history-box"></div>
@@ -92,7 +106,7 @@
 <audio id="snd-gong" preload="auto" src="https://gfxsounds.com/wp-content/uploads/2022/07/Chinese-gong-hit.mp3"></audio>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('zen_v23_final')) || { history: [], best: 0, totalHold: 0, streak: 0, lastDate: null, weeklyLogs: [] };
+    let db = JSON.parse(localStorage.getItem('zen_v23_final')) || { history: [], best: 0, totalHold: 0, streak: 0, lastDate: null, weeklyLogs: [], baselineBest: 152, baselineTotalHold: 14280, baselineSessions: 100, baselineRounds: 156 };
     let breathCount = 0; let curRound = 1; let speed = 2000;
     let isActive = false; let isHolding = false; let holdStart;
 
@@ -207,10 +221,27 @@
     }
 
     function renderStats() {
-        document.getElementById('val-total').innerText = Math.floor(db.totalHold / 60);
-        document.getElementById('val-best').innerText = db.best + 's';
-        document.getElementById('val-sessions').innerText = [...new Set(db.history.map(i => i.date))].length;
-        document.getElementById('val-rounds').innerText = db.history.length;
+        let totalH = db.totalHold + (db.baselineTotalHold || 0);
+        let bestSec = Math.max(db.best, db.baselineBest || 0);
+        let rounds = db.history.length + (db.baselineRounds || 0);
+        let sessions = [...new Set(db.history.map(i => i.date))].length + (db.baselineSessions || 0);
+        let average = rounds > 0 ? totalH / rounds : 0;
+        let avgSec = Math.round(average);
+        let bestMin = Math.floor(bestSec / 60);
+        let bestS = (bestSec % 60).toString().padStart(2, '0');
+        let avgMin = Math.floor(avgSec / 60);
+        let avgS = (avgSec % 60).toString().padStart(2, '0');
+        let hours = Math.floor(totalH / 3600);
+        let mins = Math.floor((totalH % 3600) / 60);
+        let percent = bestSec > 0 ? (avgSec / bestSec) * 100 : 50;
+
+        document.getElementById('ret-bar').style.background = `linear-gradient(to right, var(--accent) ${percent}%, var(--navy) ${percent}%)`;
+        document.getElementById('longest-val').innerText = `${bestMin}:${bestS}`;
+        document.getElementById('avg-val').innerText = `${avgMin}:${avgS}`;
+        document.getElementById('sess-val').innerText = sessions;
+        document.getElementById('round-val').innerText = rounds;
+        document.getElementById('total-val').innerText = `${hours}h ${mins}m`;
+
         document.getElementById('val-streak').innerText = db.streak;
         document.getElementById('val-weekly').innerText = `${db.weeklyLogs.length}/7`;
         document.getElementById('history-box').innerHTML = db.history.slice(0, 15).map(i => `
@@ -223,6 +254,7 @@
     window.addEventListener('load', () => {
         const headerHeight = document.querySelector('.header-nav').offsetHeight;
         document.querySelectorAll('.viewport').forEach(v => v.style.paddingTop = `${headerHeight + 20}px`);
+        renderStats();
     });
 </script>
 </body>
