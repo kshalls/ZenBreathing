@@ -14,7 +14,6 @@
             transition: background 0.3s ease; padding-top: env(safe-area-inset-top);
         }
 
-        /* Fluid Navigation: No longer fixed to prevent cutoffs */
         .header-nav { 
             display: flex; justify-content: space-around; 
             background: var(--white); border-bottom: 1px solid var(--border); 
@@ -26,7 +25,6 @@
         .viewport { flex: 1; padding: 20px; text-align: center; display: flex; flex-direction: column; overflow-y: visible; }
         .hidden { display: none !important; }
 
-        /* Session Focus Mode */
         .session-active .hide-on-start, .session-active .header-nav { display: none !important; }
         .session-active .viewport { justify-content: center; height: 100vh; padding: 0; }
         .session-active .hex-container { width: 220px; height: 220px; font-size: 3.5rem; }
@@ -34,9 +32,14 @@
         .hex-container {
             width: 140px; height: 140px; background: #d1e3e8; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
             margin: 20px auto; display: flex; align-items: center; justify-content: center;
-            font-size: 2.2rem; color: #2c5364; transition: transform 2s ease-in-out, width 0.5s, height 0.5s;
+            font-size: 2.2rem; color: #2c5364; transition: transform 2s ease-in-out;
         }
         .expand { transform: scale(1.3); background: #b0d4de; }
+
+        /* Speed Toggles Restored */
+        .toggle-group { display: flex; background: #eef2f3; border-radius: 12px; padding: 5px; margin: 15px 0; }
+        .toggle-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; background: transparent; color: var(--text); font-weight: bold; font-size: 0.8rem; opacity: 0.6; }
+        .toggle-btn.active { background: var(--navy); color: white; opacity: 1; }
 
         .rec-container { width: 80%; height: 12px; background: #eee; border-radius: 6px; margin: 20px auto; overflow: hidden; display: none; border: 1px solid var(--border); }
         .rec-bar { height: 100%; background: #2ecc71; width: 0%; transition: width 1s linear; }
@@ -46,7 +49,7 @@
 
         .btn-action { background: var(--navy); color: white; border: none; width: 90%; max-width: 400px; padding: 20px; border-radius: 15px; font-size: 1.2rem; font-weight: bold; margin: 20px auto; }
 
-        /* Stats Card Restored */
+        /* Grok Stat Bar Restored */
         .breathing-card { background: var(--white); padding: 20px; border-radius: 15px; margin-bottom: 20px; text-align: left; border: 1px solid var(--border); }
         .ret-bar { height: 35px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; color: white; font-weight: bold; margin-bottom: 15px; }
         
@@ -73,6 +76,11 @@
     </div>
 
     <div class="hide-on-start">
+        <div class="toggle-group">
+            <button class="toggle-btn" onclick="setSpeed(3000, 2, this)">Slow</button>
+            <button class="toggle-btn active" onclick="setSpeed(2000, 2, this)">Standard</button>
+            <button class="toggle-btn" onclick="setSpeed(1200, 1.2, this)">Fast</button>
+        </div>
         <div class="setting-row"><span>Total Rounds</span><input type="number" id="in-rounds" class="pro-input" value="3"></div>
         <div class="setting-row"><span>Breaths per Round</span><input type="number" id="in-breaths" class="pro-input" value="30"></div>
     </div>
@@ -101,15 +109,22 @@
 <audio id="snd-gong" preload="auto" src="https://www.soundjay.com/button/sounds/button-10.mp3"></audio>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('zen_v28')) || { 
+    let db = JSON.parse(localStorage.getItem('zen_v29')) || { 
         history: [], best: 0, totalHold: 0, streak: 0, lastDate: null, weeklyLogs: [], 
         baselineBest: 152, baselineTotalHold: 14280, baselineSessions: 100, baselineRounds: 156 
     };
     
-    let breathCount = 0, curRound = 1, isActive = false, isHolding = false, holdStart;
+    let breathCount = 0, curRound = 1, speed = 2000, isActive = false, isHolding = false, holdStart;
     const sounds = ["snd-inhale", "snd-exhale", "snd-ocean", "snd-chime", "snd-gong"].map(id => document.getElementById(id));
 
     function toggleTheme() { document.body.classList.toggle('dark-theme'); }
+
+    function setSpeed(ms, transitionTime, btn) {
+        speed = ms;
+        document.getElementById('bubble').style.transition = `transform ${transitionTime}s ease-in-out`;
+        document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
 
     function showTab(tab) {
         document.getElementById('view-practice').classList.toggle('hidden', tab !== 'practice');
@@ -139,7 +154,7 @@
             document.getElementById('bubble').innerText = Math.ceil(breathCount/2);
             sounds[up ? 0 : 1].play();
             if (breathCount >= (bGoal * 2)) { clearInterval(timer); runHold(); }
-        }, 2000);
+        }, speed);
     }
 
     function runHold() {
@@ -182,14 +197,14 @@
         const today = new Date().toLocaleDateString();
         db.totalHold += h; if (h > db.best) db.best = h;
         db.history.unshift({ id: Date.now(), date: today, hold: h });
-        localStorage.setItem('zen_v28', JSON.stringify(db));
+        localStorage.setItem('zen_v29', JSON.stringify(db));
     }
 
     function deleteItem(id) {
         const item = db.history.find(i => i.id === id);
         if (item) db.totalHold -= item.hold;
         db.history = db.history.filter(i => i.id !== id);
-        localStorage.setItem('zen_v28', JSON.stringify(db));
+        localStorage.setItem('zen_v29', JSON.stringify(db));
         renderStats();
     }
 
