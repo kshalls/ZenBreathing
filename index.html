@@ -2,124 +2,218 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>ZenBreath</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>ZenBreath Pro</title>
     <style>
-        /* FIXED: Using absolute positioning for the header to prevent it from disappearing */
-        :root { --navy: #0f2d37; --teal: #2c5364; --white: #ffffff; }
-        body { margin: 0; font-family: -apple-system, sans-serif; background: #f8fafb; height: 100vh; display: flex; flex-direction: column; padding-top: env(safe-area-inset-top); }
+        :root { --bg: #f8fafb; --navy: #0f2d37; --accent: #2c5364; --text-dim: #636e72; --white: #ffffff; --red: #e74c3c; }
         
-        #nav { 
-            position: fixed; top: env(safe-area-inset-top); left: 0; right: 0;
-            display: flex; justify-content: space-around; background: var(--white); 
-            border-bottom: 2px solid #ddd; height: 60px; align-items: center; z-index: 9999;
+        body { 
+            background: var(--bg); font-family: -apple-system, sans-serif; margin: 0; 
+            color: var(--navy); height: 100vh; display: flex; flex-direction: column; 
+            overflow: hidden; padding-top: env(safe-area-inset-top);
         }
-        .tab { font-weight: bold; color: #888; padding: 10px; border-bottom: 3px solid transparent; }
-        .tab.active { color: var(--navy); border-bottom-color: var(--navy); }
 
-        .view { flex: 1; margin-top: 70px; padding: 20px; text-align: center; overflow-y: auto; }
+        .header-nav { 
+            position: sticky; top: 0; display: flex; justify-content: space-around; 
+            background: var(--white); border-bottom: 1px solid #eee; padding: 15px 0; z-index: 10000; 
+        }
+        .nav-tab { padding: 10px 20px; font-weight: bold; color: var(--text-dim); cursor: pointer; font-size: 0.9rem; }
+        .nav-tab.active { color: var(--navy); border-bottom: 3px solid var(--navy); }
+
+        .viewport { flex: 1; overflow-y: auto; padding: 20px; text-align: center; }
         .hidden { display: none !important; }
 
-        .hex { 
-            width: 120px; height: 120px; background: #d1e3e8; margin: 20px auto;
-            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-            display: flex; align-items: center; justify-content: center; font-size: 2rem;
-            transition: transform 2s;
+        .hex-container {
+            width: 140px; height: 140px; background: #d1e3e8; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            margin: 20px auto; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-size: 2.2rem; color: var(--accent); transition: transform 2s ease-in-out;
         }
-        .grow { transform: scale(1.4); background: #b0d4de; }
-        
-        .btn { background: var(--navy); color: white; border: none; width: 100%; padding: 20px; border-radius: 15px; font-size: 1.2rem; font-weight: bold; margin-top: 20px; }
-        .row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee; }
-        input { width: 70px; padding: 10px; text-align: center; border-radius: 10px; border: 1px solid #ccc; font-weight: bold; }
+        .expand { transform: scale(1.4); background: #b0d4de; }
+
+        .toggle-group { display: flex; background: #eef2f3; border-radius: 12px; padding: 5px; margin: 15px 0; }
+        .toggle-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; background: transparent; color: var(--text-dim); font-weight: bold; font-size: 0.8rem; }
+        .toggle-btn.active { background: var(--navy); color: white; }
+
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
+        .pro-input { background: #ffffff; border: 2px solid #d1d8db; color: var(--navy); font-weight: bold; font-size: 1.1rem; text-align: center; width: 80px; padding: 10px; border-radius: 12px; outline: none; }
+
+        .btn-action { background: var(--navy); color: white; border: none; width: 100%; padding: 18px; border-radius: 15px; font-size: 1.1rem; font-weight: bold; margin-top: 20px; }
+
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .stat-card { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .stat-val { display: block; font-size: 1.2rem; font-weight: bold; color: var(--accent); }
+        .stat-lab { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; }
+
+        .history-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; text-align: left; }
+        .del-btn { color: var(--red); border: 1px solid #fee2e2; background: #fff5f5; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div id="nav">
-    <div class="tab active" id="t1" onclick="go('p')">Practice</div>
-    <div class="tab" id="t2" onclick="go('s')">Progress</div>
+<div class="header-nav">
+    <div class="nav-tab active" id="nav-p" onclick="showTab('practice')">Practice</div>
+    <div class="nav-tab" id="nav-s" onclick="showTab('stats')">Progress</div>
 </div>
 
-<div id="p-view" class="view">
-    <div class="hex" id="hex">0</div>
-    <div id="stat" style="font-weight:bold; color:var(--teal)">Ready</div>
-    <div class="row"><span>Rounds</span><input type="number" id="r" value="3"></div>
-    <div class="row"><span>Breaths</span><input type="number" id="b" value="30"></div>
-    <button class="btn" id="start">Start Session</button>
+<div id="view-practice" class="viewport">
+    <div class="hex-container" id="bubble">0</div>
+    <div id="round-info" style="font-weight: bold; color: var(--accent);">Ready to Start</div>
+
+    <div class="toggle-group">
+        <button class="toggle-btn" onclick="setSpeed(3000, 2, this)">Slow</button>
+        <button class="toggle-btn active" onclick="setSpeed(2000, 2, this)">Standard</button>
+        <button class="toggle-btn" onclick="setSpeed(1200, 1.2, this)">Fast</button>
+    </div>
+
+    <div class="setting-row"><span>Total Rounds</span><input type="number" id="in-rounds" class="pro-input" value="3" inputmode="numeric"></div>
+    <div class="setting-row"><span>Breaths per Round</span><input type="number" id="in-breaths" class="pro-input" value="30" inputmode="numeric"></div>
+
+    <h4 id="status-text" style="color:var(--text-dim); margin:20px 0; font-weight: 400;">Ensure Silent Switch is OFF</h4>
+    <button class="btn-action" id="mainBtn">Start Session</button>
 </div>
 
-<div id="s-view" class="view hidden">
-    <h2 id="total-time">0m Total</h2>
-    <div id="list"></div>
+<div id="view-stats" class="viewport hidden">
+    <div class="stat-grid">
+        <div class="stat-card"><span class="stat-val" id="val-total">0</span><span class="stat-lab">Total Hold (m)</span></div>
+        <div class="stat-card"><span class="stat-val" id="val-best">0s</span><span class="stat-lab">Best Hold</span></div>
+        <div class="stat-card"><span class="stat-val" id="val-streak">0</span><span class="stat-lab">Day Streak</span></div>
+        <div class="stat-card"><span class="stat-val" id="val-weekly">0/7</span><span class="stat-lab">Weekly Goal</span></div>
+    </div>
+    <h3 style="text-align: left; font-size: 1rem;">Session History</h3>
+    <div id="history-box"></div>
 </div>
 
-<audio id="in" src="https://www.soundjay.com/human/sounds/human-breath-in-1.mp3"></audio>
-<audio id="out" src="https://www.soundjay.com/human/sounds/human-breath-out-1.mp3"></audio>
-<audio id="sea" loop src="https://www.soundjay.com/nature/sounds/ocean-wave-1.mp3"></audio>
+<audio id="snd-inhale" preload="auto" src="https://assets.mixkit.co/sfx/preview/mixkit-human-breathing-inhale-2311.mp3"></audio>
+<audio id="snd-exhale" preload="auto" src="https://assets.mixkit.co/sfx/preview/mixkit-human-breathing-exhale-2312.mp3"></audio>
+<audio id="snd-ocean" loop preload="auto" src="https://assets.mixkit.co/sfx/preview/mixkit-sea-waves-loop-1196.mp3"></audio>
+<audio id="snd-chime" preload="auto" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+<audio id="snd-gong" preload="auto" src="https://actions.google.com/sounds/v1/percussion/gong.ogg"></audio>
 
 <script>
-    let d = JSON.parse(localStorage.getItem('v22')) || { h: [], t: 0 };
-    let active = false, hold = false, startT, count = 0, round = 1;
-    const s = [document.getElementById('in'), document.getElementById('out'), document.getElementById('sea')];
+    let db = JSON.parse(localStorage.getItem('zen_v23_final')) || { history: [], best: 0, totalHold: 0, streak: 0, lastDate: null, weeklyLogs: [] };
+    let breathCount = 0; let curRound = 1; let speed = 2000;
+    let isActive = false; let isHolding = false; let holdStart;
 
-    function go(v) {
-        document.getElementById('p-view').className = v === 'p' ? 'view' : 'view hidden';
-        document.getElementById('s-view').className = v === 's' ? 'view' : 'view hidden';
-        document.getElementById('t1').className = v === 'p' ? 'tab active' : 'tab';
-        document.getElementById('t2').className = v === 's' ? 'tab active' : 'tab';
-        if(v==='s') {
-            document.getElementById('total-time').innerText = Math.floor(d.t / 60) + "m Total Hold";
-            document.getElementById('list').innerHTML = d.h.slice(0,5).map(x=>`<p>${x.d}: ${x.s}s</p>`).join('');
-        }
+    const mainBtn = document.getElementById('mainBtn');
+    const bubble = document.getElementById('bubble');
+    const sounds = ["snd-inhale", "snd-exhale", "snd-ocean", "snd-chime", "snd-gong"].map(id => document.getElementById(id));
+
+    function showTab(tab) {
+        document.getElementById('view-practice').classList.toggle('hidden', tab !== 'practice');
+        document.getElementById('view-stats').classList.toggle('hidden', tab !== 'stats');
+        document.getElementById('nav-p').classList.toggle('active', tab === 'practice');
+        document.getElementById('nav-s').classList.toggle('active', tab === 'stats');
+        if(tab === 'stats') renderStats();
     }
 
-    document.getElementById('start').onclick = function() {
-        s.forEach(x => { x.play(); x.pause(); }); // Unlock Audio
-        if(!active) { round = 1; run(); } else if(hold) { end(); }
+    function setSpeed(ms, transitionTime, btn) {
+        speed = ms;
+        bubble.style.transition = `transform ${transitionTime}s ease-in-out`;
+        document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    mainBtn.onclick = () => {
+        sounds.forEach(s => { s.play(); s.pause(); s.currentTime = 0; }); // Unlock Chrome Audio
+        if (!isActive) { curRound = 1; runBreathing(); }
+        else if (isHolding) stopHold();
     };
 
-    function run() {
-        active = true; count = 0; s[2].pause();
-        document.getElementById('stat').innerText = "Round " + round;
-        let itv = setInterval(() => {
-            if(!active) { clearInterval(itv); return; }
-            count++;
-            let grow = count % 2 !== 0;
-            document.getElementById('hex').className = grow ? "hex grow" : "hex";
-            document.getElementById('hex').innerText = Math.ceil(count/2);
-            s[grow?0:1].play();
-            if(count >= (document.getElementById('b').value * 2)) { clearInterval(itv); startHold(); }
-        }, 2000);
+    function runBreathing() {
+        const maxR = parseInt(document.getElementById('in-rounds').value) || 3;
+        const maxB = parseInt(document.getElementById('in-breaths').value) || 30;
+        isActive = true; breathCount = 0; sounds[2].pause();
+        document.getElementById('round-info').innerText = `ROUND ${curRound} OF ${maxR}`;
+        document.getElementById('status-text').innerText = "Inhale... Exhale...";
+        
+        let timer = setInterval(() => {
+            if (!isActive) { clearInterval(timer); return; }
+            breathCount++;
+            const expanding = breathCount % 2 !== 0;
+            bubble.classList.toggle('expand', expanding);
+            bubble.innerText = Math.ceil(breathCount/2);
+
+            if (expanding) { sounds[0].currentTime = 0; sounds[0].play().catch(()=>{}); } 
+            else { sounds[1].currentTime = 0; sounds[1].play().catch(()=>{}); }
+
+            if (breathCount >= (maxB * 2)) { clearInterval(timer); runHold(); }
+        }, speed);
     }
 
-    function startHold() {
-        hold = true; startT = Date.now();
-        document.getElementById('stat').innerText = "HOLD";
-        document.getElementById('start').innerText = "INHALE";
-        s[2].play();
-        let hItv = setInterval(() => {
-            if(!hold) clearInterval(hItv);
-            else document.getElementById('hex').innerText = Math.floor((Date.now()-startT)/1000) + "s";
+    function runHold() {
+        sounds[3].play();
+        setTimeout(() => { if(isHolding) sounds[2].play(); }, 500);
+        isHolding = true; holdStart = Date.now();
+        document.getElementById('round-info').innerText = "HOLDING";
+        document.getElementById('status-text').innerText = "Focus on the Waves";
+        mainBtn.innerText = "TAP TO INHALE";
+        let hTimer = setInterval(() => {
+            if (!isHolding) clearInterval(hTimer);
+            else bubble.innerText = Math.floor((Date.now() - holdStart)/1000) + 's';
         }, 1000);
     }
 
-    function end() {
-        hold = false; s[2].pause();
-        let dur = Math.floor((Date.now()-startT)/1000);
-        d.t += dur; d.h.unshift({d: new Date().toLocaleDateString(), s: dur});
-        localStorage.setItem('v22', JSON.stringify(d));
+    function stopHold() {
+        isHolding = false; sounds[2].pause();
+        let holdDuration = Math.floor((Date.now() - holdStart)/1000);
+        saveData(holdDuration);
         
-        let rec = 10;
-        document.getElementById('stat').innerText = "RECOVERY";
-        let rItv = setInterval(() => {
-            document.getElementById('hex').innerText = rec;
-            rec--;
-            if(rec < 0) {
-                clearInterval(rItv);
-                if(round < document.getElementById('r').value) { round++; run(); }
-                else { active = false; document.getElementById('stat').innerText = "Done"; document.getElementById('start').innerText = "Start Session"; }
+        let recoveryLeft = 10;
+        document.getElementById('round-info').innerText = "RECOVERY";
+        document.getElementById('status-text').innerText = "Take a Deep Breath";
+        
+        let recTimer = setInterval(() => {
+            bubble.innerText = recoveryLeft;
+            recoveryLeft--;
+            if (recoveryLeft < 0) {
+                clearInterval(recTimer);
+                const maxR = parseInt(document.getElementById('in-rounds').value) || 3;
+                if (curRound < maxR) { curRound++; runBreathing(); }
+                else { 
+                    isActive = false; sounds[4].play(); 
+                    document.getElementById('round-info').innerText = "Session Complete"; 
+                    document.getElementById('status-text').innerText = "Well Done!";
+                    bubble.innerText = "Done"; 
+                    mainBtn.innerText = "Start Session";
+                }
             }
         }, 1000);
+    }
+
+    function saveData(h) {
+        const today = new Date().toLocaleDateString();
+        if (db.lastDate !== today) {
+            const yesterday = new Date(Date.now() - 86400000).toLocaleDateString();
+            db.streak = (db.lastDate === yesterday) ? db.streak + 1 : 1;
+            db.lastDate = today;
+            if (!db.weeklyLogs.includes(today)) db.weeklyLogs.push(today);
+            const weekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+            db.weeklyLogs = db.weeklyLogs.filter(d => new Date(d) > weekAgo);
+        }
+        db.totalHold += h;
+        if (h > db.best) db.best = h;
+        db.history.unshift({ id: Date.now(), date: today, hold: h });
+        localStorage.setItem('zen_v23_final', JSON.stringify(db));
+    }
+
+    function deleteItem(id) {
+        const item = db.history.find(i => i.id === id);
+        if (item) db.totalHold -= item.hold;
+        db.history = db.history.filter(i => i.id !== id);
+        localStorage.setItem('zen_v23_final', JSON.stringify(db));
+        renderStats();
+    }
+
+    function renderStats() {
+        document.getElementById('val-total').innerText = Math.floor(db.totalHold / 60);
+        document.getElementById('val-best').innerText = db.best + 's';
+        document.getElementById('val-streak').innerText = db.streak;
+        document.getElementById('val-weekly').innerText = `${db.weeklyLogs.length}/7`;
+        document.getElementById('history-box').innerHTML = db.history.slice(0, 15).map(i => `
+            <div class="history-card">
+                <div><span>${i.date}</span><br><strong>${i.hold}s Hold</strong></div>
+                <button class="del-btn" onclick="deleteItem(${i.id})">Delete</button>
+            </div>`).join('');
     }
 </script>
 </body>
