@@ -93,7 +93,7 @@
     </div>
     <div class="stat-grid">
         <div class="stat-card"><span class="stat-val" id="val-streak">0</span><span class="stat-lab">Day Streak</span></div>
-        <div class="stat-card"><span class="stat-val" id="val-weekly">0/7</span><span class="stat-lab">Weekly Streak</span></div>
+        <div class="stat-card"><span class="stat-val" id="val-weekly">0</span><span class="stat-lab">Weekly Streak</span></div>
     </div>
     <h3 style="text-align: left; font-size: 1rem;">Session History</h3>
     <div id="history-box"></div>
@@ -205,6 +205,7 @@
             if (!db.weeklyLogs.includes(today)) db.weeklyLogs.push(today);
             const weekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
             db.weeklyLogs = db.weeklyLogs.filter(d => new Date(d) > weekAgo);
+            if (db.weeklyLogs.length === 0) db.streak = 0;
         }
         db.totalHold += h;
         if (h > db.best) db.best = h;
@@ -243,7 +244,7 @@
         document.getElementById('total-val').innerText = `${hours}h ${mins}m`;
 
         document.getElementById('val-streak').innerText = db.streak;
-        document.getElementById('val-weekly').innerText = `${db.weeklyLogs.length}/7`;
+        document.getElementById('val-weekly').innerText = db.weeklyLogs.length;
         document.getElementById('history-box').innerHTML = db.history.slice(0, 15).map(i => `
             <div class="history-card">
                 <div><span>${i.date}</span><br><strong>${i.hold}s Hold</strong></div>
