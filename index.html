@@ -5,8 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ZenBreath Pro</title>
     <style>
-        :root { --bg: #f8fafb; --navy: #0f2d37; --accent: #2c5364; --text: #0f2d37; --white: #ffffff; --border: #d1d8db; --red: #e74c3c; }
-        body.dark-theme { --bg: #050f13; --navy: #1a3c4a; --accent: #4a90a4; --text: #e0e0e0; --white: #0f2d37; --border: #1a3c4a; }
+        :root { 
+            --bg: #f8fafb; --navy: #0f2d37; --accent: #2c5364; 
+            --text: #0f2d37; --white: #ffffff; --border: #d1d8db; --red: #e74c3c; 
+        }
+        
+        body.dark-theme { 
+            --bg: #050f13; --navy: #1a3c4a; --accent: #4a90a4; 
+            --text: #e0e0e0; --white: #0f2d37; --border: #1a3c4a; 
+        }
 
         body { 
             background: var(--bg); font-family: -apple-system, sans-serif; margin: 0; 
@@ -14,6 +21,7 @@
             transition: background 0.3s ease; padding-top: env(safe-area-inset-top);
         }
 
+        /* Fluid Header - No Cutoffs */
         .header-nav { 
             display: flex; justify-content: space-around; 
             background: var(--white); border-bottom: 1px solid var(--border); 
@@ -25,6 +33,7 @@
         .viewport { flex: 1; padding: 20px; text-align: center; display: flex; flex-direction: column; overflow-y: visible; }
         .hidden { display: none !important; }
 
+        /* Centered Focus Mode During Session */
         .session-active .hide-on-start, .session-active .header-nav { display: none !important; }
         .session-active .viewport { justify-content: center; height: 100vh; padding: 0; }
         .session-active .hex-container { width: 220px; height: 220px; font-size: 3.5rem; }
@@ -32,11 +41,10 @@
         .hex-container {
             width: 140px; height: 140px; background: #d1e3e8; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
             margin: 20px auto; display: flex; align-items: center; justify-content: center;
-            font-size: 2.2rem; color: #2c5364; transition: transform 2s ease-in-out;
+            font-size: 2.2rem; color: #2c5364; transition: transform 2s ease-in-out, width 0.5s, height 0.5s;
         }
         .expand { transform: scale(1.3); background: #b0d4de; }
 
-        /* Speed Toggles Restored */
         .toggle-group { display: flex; background: #eef2f3; border-radius: 12px; padding: 5px; margin: 15px 0; }
         .toggle-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; background: transparent; color: var(--text); font-weight: bold; font-size: 0.8rem; opacity: 0.6; }
         .toggle-btn.active { background: var(--navy); color: white; opacity: 1; }
@@ -49,7 +57,7 @@
 
         .btn-action { background: var(--navy); color: white; border: none; width: 90%; max-width: 400px; padding: 20px; border-radius: 15px; font-size: 1.2rem; font-weight: bold; margin: 20px auto; }
 
-        /* Grok Stat Bar Restored */
+        /* Grok Stat Bar Restoration */
         .breathing-card { background: var(--white); padding: 20px; border-radius: 15px; margin-bottom: 20px; text-align: left; border: 1px solid var(--border); }
         .ret-bar { height: 35px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; color: white; font-weight: bold; margin-bottom: 15px; }
         
@@ -102,14 +110,15 @@
     <div id="history-box"></div>
 </div>
 
-<audio id="snd-inhale" preload="auto" src="https://www.soundjay.com/human/sounds/human-breath-in-1.mp3"></audio>
-<audio id="snd-exhale" preload="auto" src="https://www.soundjay.com/human/sounds/human-breath-out-1.mp3"></audio>
-<audio id="snd-ocean" loop preload="auto" src="https://www.soundjay.com/nature/sounds/ocean-wave-1.mp3"></audio>
+<audio id="snd-inhale" preload="auto" src="https://gfxsounds.com/wp-content/uploads/2023/12/Male-vocalization-surprised-sigh-gasp-and-inhale.mp3"></audio>
+<audio id="snd-exhale" preload="auto" src="https://orangefreesounds.com/wp-content/uploads/2025/04/Sigh-sound-effect.mp3"></audio>
+<audio id="snd-ocean" loop preload="auto" src="https://gfxsounds.com/wp-content/uploads/2023/05/Beach-ambience-ocean-waves-summer-family.mp3"></audio>
 <audio id="snd-chime" preload="auto" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
-<audio id="snd-gong" preload="auto" src="https://www.soundjay.com/button/sounds/button-10.mp3"></audio>
+<audio id="snd-gong" preload="auto" src="https://gfxsounds.com/wp-content/uploads/2022/07/Chinese-gong-hit.mp3"></audio>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('zen_v29')) || { 
+    // Preserved Baseline Stats
+    let db = JSON.parse(localStorage.getItem('zen_v31')) || { 
         history: [], best: 0, totalHold: 0, streak: 0, lastDate: null, weeklyLogs: [], 
         baselineBest: 152, baselineTotalHold: 14280, baselineSessions: 100, baselineRounds: 156 
     };
@@ -197,14 +206,14 @@
         const today = new Date().toLocaleDateString();
         db.totalHold += h; if (h > db.best) db.best = h;
         db.history.unshift({ id: Date.now(), date: today, hold: h });
-        localStorage.setItem('zen_v29', JSON.stringify(db));
+        localStorage.setItem('zen_v31', JSON.stringify(db));
     }
 
     function deleteItem(id) {
         const item = db.history.find(i => i.id === id);
         if (item) db.totalHold -= item.hold;
         db.history = db.history.filter(i => i.id !== id);
-        localStorage.setItem('zen_v29', JSON.stringify(db));
+        localStorage.setItem('zen_v31', JSON.stringify(db));
         renderStats();
     }
 
