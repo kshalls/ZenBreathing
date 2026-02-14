@@ -5,58 +5,59 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ZenBreath Pro</title>
     <style>
-        :root { --bg: #f8fafb; --navy: #0f2d37; --accent: #2c5364; --text-dim: #636e72; --white: #ffffff; --red: #e74c3c; }
+        :root { 
+            --bg: #f8fafb; --navy: #0f2d37; --accent: #2c5364; 
+            --text: #0f2d37; --white: #ffffff; --border: #d1d8db;
+        }
+        /* Dark Mode Theme */
+        body.dark-theme {
+            --bg: #050f13; --navy: #1a3c4a; --accent: #4a90a4;
+            --text: #e0e0e0; --white: #0f2d37; --border: #1a3c4a;
+        }
         
         body { 
             background: var(--bg); font-family: -apple-system, sans-serif; margin: 0; 
-            color: var(--navy); height: 100vh; display: flex; flex-direction: column; 
-            overflow: hidden;
+            color: var(--text); height: 100vh; display: flex; flex-direction: column; 
+            overflow: hidden; transition: background 0.3s ease;
         }
 
         .header-nav { 
             position: fixed; top: 0; left: 0; right: 0; display: flex; justify-content: space-around; 
-            background: var(--white); border-bottom: 1px solid #eee; padding: env(safe-area-inset-top) 0 15px 0; z-index: 10000; 
+            background: var(--white); border-bottom: 1px solid var(--border); 
+            padding: env(safe-area-inset-top) 0 15px 0; z-index: 10000; 
         }
-        .nav-tab { padding: 10px 20px; font-weight: bold; color: var(--text-dim); cursor: pointer; font-size: 0.9rem; }
-        .nav-tab.active { color: var(--navy); border-bottom: 3px solid var(--navy); }
+        .nav-tab { padding: 10px 20px; font-weight: bold; color: var(--text); opacity: 0.6; cursor: pointer; }
+        .nav-tab.active { opacity: 1; border-bottom: 3px solid var(--accent); }
 
         .viewport { flex: 1; overflow-y: auto; padding: 20px; text-align: center; }
         .hidden { display: none !important; }
 
+        /* Focus Mode Logic */
+        .session-active .hide-on-start { display: none !important; }
+        .session-active .header-nav { display: none !important; }
+
         .hex-container {
-            width: 140px; height: 140px; background: #d1e3e8; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-            margin: 20px auto; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            font-size: 2.2rem; color: var(--accent); transition: transform 2s ease-in-out;
+            width: 160px; height: 160px; background: #d1e3e8; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            margin: 40px auto; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-size: 2.5rem; color: #2c5364; transition: transform 2s ease-in-out;
         }
         .expand { transform: scale(1.4); background: #b0d4de; }
 
-        .toggle-group { display: flex; background: #eef2f3; border-radius: 12px; padding: 5px; margin: 15px 0; }
-        .toggle-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; background: transparent; color: var(--text-dim); font-weight: bold; font-size: 0.8rem; }
-        .toggle-btn.active { background: var(--navy); color: white; }
+        /* Recovery Bar */
+        .rec-container { width: 100%; height: 10px; background: #eee; border-radius: 5px; margin-top: 20px; overflow: hidden; display: none; }
+        .rec-bar { height: 100%; background: #2ecc71; width: 0%; transition: width 1s linear; }
 
-        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
-        .pro-input { background: #ffffff; border: 2px solid #d1d8db; color: var(--navy); font-weight: bold; font-size: 1.1rem; text-align: center; width: 80px; padding: 10px; border-radius: 12px; outline: none; }
+        .btn-action { background: var(--accent); color: white; border: none; width: 100%; padding: 20px; border-radius: 15px; font-size: 1.2rem; font-weight: bold; margin-top: 20px; }
+        .theme-toggle { position: fixed; bottom: 20px; right: 20px; padding: 10px; border-radius: 50%; background: var(--white); border: 1px solid var(--border); z-index: 10001; }
 
-        .btn-action { background: var(--navy); color: white; border: none; width: 100%; padding: 18px; border-radius: 15px; font-size: 1.1rem; font-weight: bold; margin-top: 20px; }
-
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .stat-card { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .stat-val { display: block; font-size: 1.2rem; font-weight: bold; color: var(--accent); }
-        .stat-lab { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; }
-
-        .history-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; text-align: left; }
-        .del-btn { color: var(--red); border: 1px solid #fee2e2; background: #fff5f5; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; }
-
-        .breathing-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: left; }
-        .breathing-card h3 { font-size: 1rem; margin-bottom: 10px; }
-        .ret-labels { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 5px; }
-        .ret-bar { height: 30px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; padding: 0 10px; color: white; font-weight: bold; margin-bottom: 10px; }
-        .bottom-stats { display: flex; justify-content: space-between; font-size: 0.9rem; }
-        .bottom-stats span { text-align: center; flex: 1; }
-        .bottom-stats strong { display: block; font-size: 1.1rem; color: var(--accent); }
+        /* Stats Card from Grok Code preserved */
+        .breathing-card { background: var(--white); padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: left; }
+        .ret-bar { height: 30px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; padding: 0 10px; color: white; font-weight: bold; }
     </style>
 </head>
 <body>
+
+<button class="theme-toggle" onclick="toggleTheme()">🌓</button>
 
 <div class="header-nav">
     <div class="nav-tab active" id="nav-p" onclick="showTab('practice')">Practice</div>
@@ -64,199 +65,124 @@
 </div>
 
 <div id="view-practice" class="viewport">
-    <div class="hex-container" id="bubble">0</div>
-    <div id="round-info" style="font-weight: bold; color: var(--accent);">Ready to Start</div>
-
-    <div class="toggle-group">
-        <button class="toggle-btn" onclick="setSpeed(3000, 2, this)">Slow</button>
-        <button class="toggle-btn active" onclick="setSpeed(2000, 2, this)">Standard</button>
-        <button class="toggle-btn" onclick="setSpeed(1200, 1.2, this)">Fast</button>
+    <div id="focus-area">
+        <div class="hex-container" id="bubble">0</div>
+        <div id="round-info" style="font-weight: bold; font-size: 1.2rem; margin-bottom: 10px;">Ready</div>
+        <div class="rec-container" id="rec-container"><div class="rec-bar" id="rec-bar"></div></div>
     </div>
 
-    <div class="setting-row"><span>Total Rounds</span><input type="number" id="in-rounds" class="pro-input" value="3" inputmode="numeric"></div>
-    <div class="setting-row"><span>Breaths per Round</span><input type="number" id="in-breaths" class="pro-input" value="30" inputmode="numeric"></div>
+    <div class="hide-on-start">
+        <div style="display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid var(--border);">
+            <span>Rounds</span><input type="number" id="in-rounds" value="3" style="width:60px; text-align:center;">
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid var(--border);">
+            <span>Breaths</span><input type="number" id="in-breaths" value="30" style="width:60px; text-align:center;">
+        </div>
+    </div>
 
-    <h4 id="status-text" style="color:var(--text-dim); margin:20px 0; font-weight: 400;">Ensure Silent Switch is OFF</h4>
     <button class="btn-action" id="mainBtn">Start Session</button>
 </div>
 
 <div id="view-stats" class="viewport hidden">
     <div class="breathing-card">
-        <h3>Breathing Basics</h3>
-        <div class="ret-labels"><span>Longest Retention</span><span>Average Retention</span></div>
-        <div class="ret-bar" id="ret-bar"><span id="longest-val">0:00</span><span id="avg-val">0:00</span></div>
-        <div class="bottom-stats">
-            <span>Sessions<br><strong id="sess-val">0</strong></span>
-            <span>Total rounds<br><strong id="round-val">0</strong></span>
-            <span>Total retention<br><strong id="total-val">0h 0m</strong></span>
+        <div class="ret-bar" id="ret-bar">
+            <span id="longest-val">0:00</span>
+            <span id="avg-val">0:00</span>
         </div>
-    </div>
-    <div class="stat-grid">
-        <div class="stat-card"><span class="stat-val" id="val-streak">0</span><span class="stat-lab">Day Streak</span></div>
-        <div class="stat-card"><span class="stat-val" id="val-weekly">0</span><span class="stat-lab">Weekly Streak</span></div>
-    </div>
-    <h3 style="text-align: left; font-size: 1rem;">Session History</h3>
+        </div>
     <div id="history-box"></div>
 </div>
 
-<audio id="snd-inhale" preload="auto" src="https://gfxsounds.com/wp-content/uploads/2023/12/Male-vocalization-surprised-sigh-gasp-and-inhale.mp3"></audio>
-<audio id="snd-exhale" preload="auto" src="https://orangefreesounds.com/wp-content/uploads/2025/04/Sigh-sound-effect.mp3"></audio>
-<audio id="snd-ocean" loop preload="auto" src="https://gfxsounds.com/wp-content/uploads/2023/05/Beach-ambience-ocean-waves-summer-family.mp3"></audio>
-<audio id="snd-chime" preload="auto" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
-<audio id="snd-gong" preload="auto" src="https://gfxsounds.com/wp-content/uploads/2022/07/Chinese-gong-hit.mp3"></audio>
+<audio id="snd-inhale" src="https://www.soundjay.com/human/sounds/human-breath-in-1.mp3"></audio>
+<audio id="snd-exhale" src="https://www.soundjay.com/human/sounds/human-breath-out-1.mp3"></audio>
+<audio id="snd-ocean" loop src="https://www.soundjay.com/nature/sounds/ocean-wave-1.mp3"></audio>
+<audio id="snd-chime" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+<audio id="snd-gong" src="https://www.soundjay.com/button/sounds/button-10.mp3"></audio>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('zen_v23_final')) || { history: [], best: 0, totalHold: 0, streak: 0, lastDate: null, weeklyLogs: [], baselineBest: 152, baselineTotalHold: 14280, baselineSessions: 100, baselineRounds: 156 };
-    let breathCount = 0; let curRound = 1; let speed = 2000;
-    let isActive = false; let isHolding = false; let holdStart;
-
-    const mainBtn = document.getElementById('mainBtn');
-    const bubble = document.getElementById('bubble');
+    let db = JSON.parse(localStorage.getItem('zen_v25')) || { history: [], best: 0, totalHold: 0, streak: 0, baselineBest: 152, baselineTotalHold: 14280, baselineSessions: 100, baselineRounds: 156 };
+    let breathCount = 0, curRound = 1, isActive = false, isHolding = false, holdStart;
     const sounds = ["snd-inhale", "snd-exhale", "snd-ocean", "snd-chime", "snd-gong"].map(id => document.getElementById(id));
+
+    function toggleTheme() { document.body.classList.toggle('dark-theme'); }
 
     function showTab(tab) {
         document.getElementById('view-practice').classList.toggle('hidden', tab !== 'practice');
         document.getElementById('view-stats').classList.toggle('hidden', tab !== 'stats');
         document.getElementById('nav-p').classList.toggle('active', tab === 'practice');
         document.getElementById('nav-s').classList.toggle('active', tab === 'stats');
-        if(tab === 'stats') renderStats();
     }
 
-    function setSpeed(ms, transitionTime, btn) {
-        speed = ms;
-        bubble.style.transition = `transform ${transitionTime}s ease-in-out`;
-        document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-    }
-
-    mainBtn.onclick = () => {
-        sounds.forEach(s => { s.play(); s.pause(); s.currentTime = 0; }); // Unlock Chrome Audio
-        if (!isActive) { curRound = 1; runBreathing(); }
+    document.getElementById('mainBtn').onclick = () => {
+        sounds.forEach(s => { s.play(); s.pause(); s.currentTime = 0; });
+        if (!isActive) startSession();
         else if (isHolding) stopHold();
     };
 
+    function startSession() {
+        isActive = true; curRound = 1;
+        document.body.classList.add('session-active');
+        runBreathing();
+    }
+
     function runBreathing() {
-        const maxR = parseInt(document.getElementById('in-rounds').value) || 3;
-        const maxB = parseInt(document.getElementById('in-breaths').value) || 30;
-        isActive = true; breathCount = 0; sounds[2].pause();
-        document.getElementById('round-info').innerText = `ROUND ${curRound} OF ${maxR}`;
-        document.getElementById('status-text').innerText = "Inhale... Exhale...";
+        breathCount = 0; sounds[2].pause();
+        document.getElementById('round-info').innerText = `Round ${curRound}`;
+        document.getElementById('rec-container').style.display = 'none';
         
         let timer = setInterval(() => {
             if (!isActive) { clearInterval(timer); return; }
             breathCount++;
             const expanding = breathCount % 2 !== 0;
-            bubble.classList.toggle('expand', expanding);
-            bubble.innerText = Math.ceil(breathCount/2);
+            document.getElementById('bubble').classList.toggle('expand', expanding);
+            document.getElementById('bubble').innerText = Math.ceil(breathCount/2);
+            sounds[expanding ? 0 : 1].play();
 
-            if (expanding) { sounds[0].currentTime = 0; sounds[0].play().catch(()=>{}); } 
-            else { sounds[1].currentTime = 0; sounds[1].play().catch(()=>{}); }
-
-            if (breathCount >= (maxB * 2)) { clearInterval(timer); runHold(); }
-        }, speed);
+            if (breathCount >= (parseInt(document.getElementById('in-breaths').value) * 2)) {
+                clearInterval(timer); runHold();
+            }
+        }, 2000);
     }
 
     function runHold() {
         sounds[3].play();
         setTimeout(() => { if(isHolding) sounds[2].play(); }, 500);
         isHolding = true; holdStart = Date.now();
-        document.getElementById('round-info').innerText = "HOLDING";
-        document.getElementById('status-text').innerText = "Focus on the Waves";
-        mainBtn.innerText = "TAP TO INHALE";
-        let hTimer = setInterval(() => {
-            if (!isHolding) clearInterval(hTimer);
-            else bubble.innerText = Math.floor((Date.now() - holdStart)/1000) + 's';
+        document.getElementById('round-info').innerText = "HOLD";
+        document.getElementById('mainBtn').innerText = "TAP TO INHALE";
+        let hT = setInterval(() => {
+            if (!isHolding) clearInterval(hT);
+            else document.getElementById('bubble').innerText = Math.floor((Date.now() - holdStart)/1000) + 's';
         }, 1000);
     }
 
     function stopHold() {
         isHolding = false; sounds[2].pause();
-        let holdDuration = Math.floor((Date.now() - holdStart)/1000);
-        saveData(holdDuration);
-        
-        let recoveryLeft = 10;
+        let dur = Math.floor((Date.now() - holdStart)/1000);
+        db.totalHold += dur; if (dur > db.best) db.best = dur;
+        db.history.unshift({ date: new Date().toLocaleDateString(), hold: dur });
+        localStorage.setItem('zen_v25', JSON.stringify(db));
+
+        let rec = 10;
         document.getElementById('round-info').innerText = "RECOVERY";
-        document.getElementById('status-text').innerText = "Take a Deep Breath";
-        
-        let recTimer = setInterval(() => {
-            bubble.innerText = recoveryLeft;
-            recoveryLeft--;
-            if (recoveryLeft < 0) {
-                clearInterval(recTimer);
-                const maxR = parseInt(document.getElementById('in-rounds').value) || 3;
-                if (curRound < maxR) { curRound++; runBreathing(); }
-                else { 
-                    isActive = false; sounds[4].play(); 
-                    document.getElementById('round-info').innerText = "Session Complete"; 
-                    document.getElementById('status-text').innerText = "Well Done!";
-                    bubble.innerText = "Done"; 
-                    mainBtn.innerText = "Start Session";
+        document.getElementById('rec-container').style.display = 'block';
+        let rT = setInterval(() => {
+            document.getElementById('bubble').innerText = rec;
+            document.getElementById('rec-bar').style.width = ((10-rec)*10) + '%';
+            rec--;
+            if (rec < 0) {
+                clearInterval(rT);
+                if (curRound < parseInt(document.getElementById('in-rounds').value)) {
+                    curRound++; runBreathing();
+                } else {
+                    isActive = false; sounds[4].play();
+                    document.body.classList.remove('session-active');
+                    document.getElementById('round-info').innerText = "Done";
+                    document.getElementById('mainBtn').innerText = "Start Session";
                 }
             }
         }, 1000);
     }
-
-    function saveData(h) {
-        const today = new Date().toLocaleDateString();
-        if (db.lastDate !== today) {
-            const yesterday = new Date(Date.now() - 86400000).toLocaleDateString();
-            db.streak = (db.lastDate === yesterday) ? db.streak + 1 : 1;
-            db.lastDate = today;
-            if (!db.weeklyLogs.includes(today)) db.weeklyLogs.push(today);
-            const weekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
-            db.weeklyLogs = db.weeklyLogs.filter(d => new Date(d) > weekAgo);
-            if (db.weeklyLogs.length === 0) db.streak = 0;
-        }
-        db.totalHold += h;
-        if (h > db.best) db.best = h;
-        db.history.unshift({ id: Date.now(), date: today, hold: h });
-        localStorage.setItem('zen_v23_final', JSON.stringify(db));
-    }
-
-    function deleteItem(id) {
-        const item = db.history.find(i => i.id === id);
-        if (item) db.totalHold -= item.hold;
-        db.history = db.history.filter(i => i.id !== id);
-        localStorage.setItem('zen_v23_final', JSON.stringify(db));
-        renderStats();
-    }
-
-    function renderStats() {
-        let totalH = db.totalHold + (db.baselineTotalHold || 0);
-        let bestSec = Math.max(db.best, db.baselineBest || 0);
-        let rounds = db.history.length + (db.baselineRounds || 0);
-        let sessions = [...new Set(db.history.map(i => i.date))].length + (db.baselineSessions || 0);
-        let average = rounds > 0 ? totalH / rounds : 0;
-        let avgSec = Math.round(average);
-        let bestMin = Math.floor(bestSec / 60);
-        let bestS = (bestSec % 60).toString().padStart(2, '0');
-        let avgMin = Math.floor(avgSec / 60);
-        let avgS = (avgSec % 60).toString().padStart(2, '0');
-        let hours = Math.floor(totalH / 3600);
-        let mins = Math.floor((totalH % 3600) / 60);
-        let percent = bestSec > 0 ? (avgSec / bestSec) * 100 : 50;
-
-        document.getElementById('ret-bar').style.background = `linear-gradient(to right, var(--accent) ${percent}%, var(--navy) ${percent}%)`;
-        document.getElementById('longest-val').innerText = `${bestMin}:${bestS}`;
-        document.getElementById('avg-val').innerText = `${avgMin}:${avgS}`;
-        document.getElementById('sess-val').innerText = sessions;
-        document.getElementById('round-val').innerText = rounds;
-        document.getElementById('total-val').innerText = `${hours}h ${mins}m`;
-
-        document.getElementById('val-streak').innerText = db.streak;
-        document.getElementById('val-weekly').innerText = db.weeklyLogs.length;
-        document.getElementById('history-box').innerHTML = db.history.slice(0, 15).map(i => `
-            <div class="history-card">
-                <div><span>${i.date}</span><br><strong>${i.hold}s Hold</strong></div>
-                <button class="del-btn" onclick="deleteItem(${i.id})">Delete</button>
-            </div>`).join('');
-    }
-
-    window.addEventListener('load', () => {
-        const headerHeight = document.querySelector('.header-nav').offsetHeight;
-        document.querySelectorAll('.viewport').forEach(v => v.style.paddingTop = `${headerHeight + 20}px`);
-        renderStats();
-    });
 </script>
 </body>
 </html>
