@@ -10,12 +10,12 @@
         body { 
             background: var(--bg); font-family: -apple-system, sans-serif; margin: 0; 
             color: var(--navy); height: 100vh; display: flex; flex-direction: column; 
-            overflow: hidden; padding-top: env(safe-area-inset-top);
+            overflow: hidden;
         }
 
         .header-nav { 
-            position: sticky; top: 0; display: flex; justify-content: space-around; 
-            background: var(--white); border-bottom: 1px solid #eee; padding: 15px 0; z-index: 10000; 
+            position: fixed; top: 0; left: 0; right: 0; display: flex; justify-content: space-around; 
+            background: var(--white); border-bottom: 1px solid #eee; padding: env(safe-area-inset-top) 0 15px 0; z-index: 10000; 
         }
         .nav-tab { padding: 10px 20px; font-weight: bold; color: var(--text-dim); cursor: pointer; font-size: 0.9rem; }
         .nav-tab.active { color: var(--navy); border-bottom: 3px solid var(--navy); }
@@ -76,6 +76,8 @@
     <div class="stat-grid">
         <div class="stat-card"><span class="stat-val" id="val-total">0</span><span class="stat-lab">Total Hold (m)</span></div>
         <div class="stat-card"><span class="stat-val" id="val-best">0s</span><span class="stat-lab">Best Hold</span></div>
+        <div class="stat-card"><span class="stat-val" id="val-sessions">0</span><span class="stat-lab">Sessions</span></div>
+        <div class="stat-card"><span class="stat-val" id="val-rounds">0</span><span class="stat-lab">Total Rounds</span></div>
         <div class="stat-card"><span class="stat-val" id="val-streak">0</span><span class="stat-lab">Day Streak</span></div>
         <div class="stat-card"><span class="stat-val" id="val-weekly">0/7</span><span class="stat-lab">Weekly Goal</span></div>
     </div>
@@ -207,6 +209,8 @@
     function renderStats() {
         document.getElementById('val-total').innerText = Math.floor(db.totalHold / 60);
         document.getElementById('val-best').innerText = db.best + 's';
+        document.getElementById('val-sessions').innerText = [...new Set(db.history.map(i => i.date))].length;
+        document.getElementById('val-rounds').innerText = db.history.length;
         document.getElementById('val-streak').innerText = db.streak;
         document.getElementById('val-weekly').innerText = `${db.weeklyLogs.length}/7`;
         document.getElementById('history-box').innerHTML = db.history.slice(0, 15).map(i => `
@@ -215,6 +219,11 @@
                 <button class="del-btn" onclick="deleteItem(${i.id})">Delete</button>
             </div>`).join('');
     }
+
+    window.addEventListener('load', () => {
+        const headerHeight = document.querySelector('.header-nav').offsetHeight;
+        document.querySelectorAll('.viewport').forEach(v => v.style.paddingTop = `${headerHeight + 20}px`);
+    });
 </script>
 </body>
 </html>
