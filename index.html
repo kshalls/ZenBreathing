@@ -7,10 +7,17 @@
     <style>
         :root { --bg: #f8fafb; --navy: #0f2d37; --accent: #2c5364; --text-dim: #636e72; --white: #ffffff; --border: #d1d8db; }
         body { background: var(--bg); font-family: -apple-system, sans-serif; margin: 0; color: var(--navy); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        .nav-bar { display: flex; justify-content: space-around; padding: 15px 0; background: var(--white); border-bottom: 1px solid #eee; }
-        .nav-item { font-size: 0.9rem; font-weight: bold; color: var(--text-dim); cursor: pointer; padding: 5px 10px; }
+        
+        /* Fixed Nav Bar - Always Visible */
+        .nav-bar { 
+            display: flex; justify-content: space-around; padding: 15px 0; 
+            background: var(--white); border-bottom: 1px solid #eee; z-index: 100;
+        }
+        .nav-item { font-size: 0.9rem; font-weight: bold; color: var(--text-dim); cursor: pointer; padding: 5px 15px; }
         .nav-item.active { color: var(--navy); border-bottom: 2px solid var(--navy); }
-        .container { flex: 1; padding: 20px; overflow-y: auto; text-align: center; }
+
+        .container { flex: 1; padding: 20px; overflow-y: auto; text-align: center; display: flex; flex-direction: column; }
+        
         .hex-container {
             width: 140px; height: 140px; background: #d1e3e8;
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
@@ -18,12 +25,16 @@
             font-size: 2.5rem; color: var(--accent); transition: transform 2s ease-in-out;
         }
         .expand { transform: scale(1.4); background: #b0d4de; }
+
         .toggle-group { display: flex; background: #eef2f3; border-radius: 12px; padding: 5px; margin: 15px 0; }
         .toggle-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; background: transparent; color: var(--text-dim); font-weight: bold; font-size: 0.8rem; }
         .toggle-btn.active { background: var(--navy); color: white; }
+
         .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
-        .pro-input { background: #ffffff; border: 2px solid var(--border); color: var(--navy); font-weight: bold; font-size: 1.1rem; text-align: center; width: 70px; padding: 8px; border-radius: 10px; outline: none; -webkit-appearance: none; }
-        .start-btn { background: var(--navy); color: white; border: none; width: 100%; padding: 18px; border-radius: 15px; font-size: 1.1rem; font-weight: bold; margin-top: 20px; }
+        .pro-input { background: #ffffff; border: 2px solid var(--border); color: var(--navy); font-weight: bold; font-size: 1.1rem; text-align: center; width: 70px; padding: 8px; border-radius: 10px; outline: none; }
+
+        .start-btn { background: var(--navy); color: white; border: none; width: 100%; padding: 18px; border-radius: 15px; font-size: 1.1rem; font-weight: bold; margin-top: auto; margin-bottom: 20px; }
+
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .stat-card { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .stat-val { display: block; font-size: 1.2rem; font-weight: bold; color: var(--accent); }
@@ -41,7 +52,7 @@
 
 <div id="practice-tab" class="container">
     <div class="hex-container" id="bubble">0</div>
-    <div id="round-counter" style="font-weight: bold; color: var(--accent);">Tap Start</div>
+    <div id="round-counter" style="font-weight: bold; color: var(--accent);">Ready</div>
 
     <div class="toggle-group">
         <button class="toggle-btn" onclick="setSpeed(3000, this)">Slow</button>
@@ -52,27 +63,26 @@
     <div class="setting-row"><span>Rounds</span><input type="number" id="round-input" class="pro-input" value="3" inputmode="numeric"></div>
     <div class="setting-row"><span>Breaths</span><input type="number" id="breath-input" class="pro-input" value="30" inputmode="numeric"></div>
 
-    <h4 id="status-text" style="color:var(--text-dim); margin:15px 0;">Ready?</h4>
-    <button class="start-btn" id="mainBtn">Start Session</button>
+    <h4 id="status-text" style="color:var(--text-dim); margin:15px 0;">Begin Session</h4>
+    <button class="start-btn" id="mainBtn">Start</button>
 </div>
 
 <div id="stats-tab" class="container hidden">
     <div class="stat-grid">
         <div class="stat-card"><span class="stat-val" id="st-total-mins">0</span><span class="stat-lab">Total Hold (m)</span></div>
-        <div class="stat-card"><span class="stat-val" id="st-rounds">0</span><span class="stat-lab">Total Rounds</span></div>
-        <div class="stat-card"><span class="stat-val" id="st-best">0s</span><span class="stat-lab">Personal Best</span></div>
+        <div class="stat-card"><span class="stat-val" id="st-rounds">0</span><span class="stat-lab">Rounds</span></div>
+        <div class="stat-card"><span class="stat-val" id="st-best">0s</span><span class="stat-lab">Record</span></div>
         <div class="stat-card"><span class="stat-val" id="st-streak">0</span><span class="stat-lab">Day Streak</span></div>
     </div>
-    <h3 style="text-align: left; font-size: 1rem;">History</h3>
     <div id="history-list"></div>
 </div>
 
-<audio id="hold-music" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"></audio>
-<audio id="chime" src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg"></audio>
+<audio id="hold-music" loop src="https://assets.mixkit.co/music/preview/mixkit-dreaming-big-31.mp3"></audio>
+<audio id="chime" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 <audio id="gong" src="https://actions.google.com/sounds/v1/percussion/gong.ogg"></audio>
 
 <script>
-    let stats = JSON.parse(localStorage.getItem('wh_v8_final')) || { history: [], totalSecs: 0, best: 0, streak: 0, lastDate: null };
+    let stats = JSON.parse(localStorage.getItem('wh_v9_final')) || { history: [], totalSecs: 0, best: 0, streak: 0, lastDate: null };
     let breathCount = 0; let currentRound = 1; let speed = 2000;
     let isActive = false; let holdActive = false; let holdStart;
 
@@ -84,11 +94,15 @@
 
     const coach = (text) => {
         const msg = new SpeechSynthesisUtterance(text);
-        msg.rate = 0.85; msg.pitch = 1.0;
+        msg.rate = 0.8; msg.volume = 0.8;
         window.speechSynthesis.speak(msg);
     };
 
     function showTab(tab) {
+        if (isActive && tab === 'stats') {
+            if (!confirm("View stats? This will pause your session.")) return;
+            isActive = false;
+        }
         document.getElementById('practice-tab').classList.toggle('hidden', tab !== 'practice');
         document.getElementById('stats-tab').classList.toggle('hidden', tab !== 'stats');
         document.getElementById('nav-p').classList.toggle('active', tab === 'practice');
@@ -103,7 +117,6 @@
     }
 
     mainBtn.onclick = () => {
-        // iPhone Audio Unlock
         [holdMusic, chime, gong].forEach(s => { s.play(); s.pause(); });
         if (!isActive) { currentRound = 1; startSession(); }
         else if (holdActive) endHold();
@@ -130,10 +143,10 @@
 
     function startHold() {
         chime.play();
-        setTimeout(() => holdMusic.play(), 1000);
+        setTimeout(() => { if(holdActive) holdMusic.play(); }, 1000);
         holdActive = true; holdStart = Date.now();
-        document.getElementById('status-text').innerText = "HOLD BREATH";
-        mainBtn.innerText = "TAP TO INHALE";
+        document.getElementById('status-text').innerText = "HOLD";
+        mainBtn.innerText = "INHALE";
         let timer = setInterval(() => {
             if (!holdActive) clearInterval(timer);
             else bubble.innerText = Math.floor((Date.now() - holdStart)/1000) + 's';
@@ -144,7 +157,6 @@
         holdActive = false; holdMusic.pause();
         let holdTime = Math.floor((Date.now() - holdStart)/1000);
         
-        // Update Stats
         const today = new Date().toLocaleDateString();
         if (stats.lastDate !== today) {
             const yesterday = new Date(Date.now() - 86400000).toLocaleDateString();
@@ -154,13 +166,13 @@
         stats.totalSecs += holdTime;
         if (holdTime > stats.best) stats.best = holdTime;
         stats.history.unshift({ id: Date.now(), date: today, hold: holdTime });
-        localStorage.setItem('wh_v8_final', JSON.stringify(stats));
+        localStorage.setItem('wh_v9_final', JSON.stringify(stats));
 
         coach("Recovery breath");
         setTimeout(() => {
             const totalR = parseInt(document.getElementById('round-input').value) || 3;
             if (currentRound < totalR) { currentRound++; startSession(); }
-            else { isActive = false; gong.play(); document.getElementById('status-text').innerText = "Session Complete"; }
+            else { isActive = false; gong.play(); document.getElementById('status-text').innerText = "Session Done"; }
         }, 15000);
     }
 
