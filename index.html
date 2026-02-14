@@ -6,8 +6,6 @@
     <title>ZenBreath Pro</title>
     <style>
         :root { --bg: #f8fafb; --navy: #0f2d37; --accent: #2c5364; --text: #0f2d37; --white: #ffffff; --border: #d1d8db; --red: #e74c3c; }
-        
-        /* Dark Mode Theme */
         body.dark-theme { --bg: #050f13; --navy: #1a3c4a; --accent: #4a90a4; --text: #e0e0e0; --white: #0f2d37; --border: #1a3c4a; }
 
         body { 
@@ -24,35 +22,36 @@
         .nav-tab { padding: 10px 20px; font-weight: bold; color: var(--text); opacity: 0.6; cursor: pointer; font-size: 0.9rem; }
         .nav-tab.active { opacity: 1; border-bottom: 3px solid var(--accent); }
 
-        .viewport { flex: 1; overflow-y: auto; padding: 20px; text-align: center; }
+        .viewport { flex: 1; overflow-y: auto; padding: 20px; text-align: center; display: flex; flex-direction: column; }
         .hidden { display: none !important; }
 
-        /* Focus Mode View: Hides UI during breathing */
+        /* CENTERED FOCUS MODE */
         .session-active .hide-on-start, .session-active .header-nav { display: none !important; }
+        .session-active #view-practice { justify-content: center; padding: 0; }
+        .session-active .hex-container { width: 220px; height: 220px; font-size: 3.5rem; margin: 0 auto 40px auto; }
 
         .hex-container {
             width: 140px; height: 140px; background: #d1e3e8; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-            margin: 20px auto; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            font-size: 2.2rem; color: #2c5364; transition: transform 2s ease-in-out;
+            margin: 20px auto; display: flex; flex-direction: center; align-items: center; justify-content: center;
+            font-size: 2.2rem; color: #2c5364; transition: transform 2s ease-in-out, width 0.5s, height 0.5s;
         }
-        .expand { transform: scale(1.4); background: #b0d4de; }
+        .expand { transform: scale(1.3); background: #b0d4de; }
 
-        /* Recovery Bar Styling */
-        .rec-container { width: 100%; height: 12px; background: #eee; border-radius: 6px; margin: 20px 0; overflow: hidden; display: none; border: 1px solid var(--border); }
+        .rec-container { width: 80%; height: 12px; background: #eee; border-radius: 6px; margin: 20px auto; overflow: hidden; display: none; border: 1px solid var(--border); }
         .rec-bar { height: 100%; background: #2ecc71; width: 0%; transition: width 1s linear; }
 
         .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
         .pro-input { background: #ffffff; border: 2px solid var(--border); color: var(--navy); font-weight: bold; font-size: 1.1rem; text-align: center; width: 80px; padding: 10px; border-radius: 12px; outline: none; }
 
-        .btn-action { background: var(--navy); color: white; border: none; width: 100%; padding: 18px; border-radius: 15px; font-size: 1.1rem; font-weight: bold; margin-top: 20px; }
+        .btn-action { background: var(--navy); color: white; border: none; width: 90%; max-width: 400px; padding: 20px; border-radius: 15px; font-size: 1.2rem; font-weight: bold; margin: 20px auto; }
 
-        .breathing-card { background: var(--white); padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: left; border: 1px solid var(--border); }
-        .ret-bar { height: 30px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; padding: 0 10px; color: white; font-weight: bold; margin-bottom: 10px; }
+        /* RESTORED STAT BAR CARD */
+        .breathing-card { background: var(--white); padding: 20px; border-radius: 15px; margin-bottom: 20px; text-align: left; border: 1px solid var(--border); }
+        .ret-labels { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text); opacity: 0.7; margin-bottom: 8px; }
+        .ret-bar { height: 35px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; color: white; font-weight: bold; margin-bottom: 15px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
         
-        .theme-toggle { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; border-radius: 25px; background: var(--navy); color: white; border: none; font-size: 1.5rem; z-index: 10001; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        
+        .theme-toggle { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; border-radius: 25px; background: var(--navy); color: white; border: none; font-size: 1.5rem; z-index: 10001; }
         .history-card { background: var(--white); padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); }
-        .del-btn { color: var(--red); border: 1px solid #fee2e2; background: #fff5f5; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -65,14 +64,15 @@
 </div>
 
 <div id="view-practice" class="viewport">
-    <div class="hex-container" id="bubble">0</div>
-    <div id="round-info" style="font-weight: bold; color: var(--accent);">Ready to Start</div>
-    
-    <div class="rec-container" id="rec-container"><div class="rec-bar" id="rec-bar"></div></div>
+    <div id="session-box">
+        <div class="hex-container" id="bubble">0</div>
+        <div id="round-info" style="font-weight: bold; color: var(--accent); font-size: 1.2rem;">Ready</div>
+        <div class="rec-container" id="rec-container"><div class="rec-bar" id="rec-bar"></div></div>
+    </div>
 
-    <div class="hide-on-start">
-        <div class="setting-row"><span>Total Rounds</span><input type="number" id="in-rounds" class="pro-input" value="3" inputmode="numeric"></div>
-        <div class="setting-row"><span>Breaths per Round</span><input type="number" id="in-breaths" class="pro-input" value="30" inputmode="numeric"></div>
+    <div class="hide-on-start" style="margin-top: 20px;">
+        <div class="setting-row"><span>Total Rounds</span><input type="number" id="in-rounds" class="pro-input" value="3"></div>
+        <div class="setting-row"><span>Breaths per Round</span><input type="number" id="in-breaths" class="pro-input" value="30"></div>
     </div>
 
     <button class="btn-action" id="mainBtn">Start Session</button>
@@ -80,16 +80,14 @@
 
 <div id="view-stats" class="viewport hidden">
     <div class="breathing-card">
+        <h3 style="margin: 0 0 15px 0; font-size: 1.1rem;">Breathing Basics</h3>
+        <div class="ret-labels"><span>Longest Retention</span><span>Average Retention</span></div>
         <div class="ret-bar" id="ret-bar"><span id="longest-val">0:00</span><span id="avg-val">0:00</span></div>
-        <div id="stats-summary" style="display: flex; justify-content: space-between; font-size: 0.9rem; text-align: center;">
-            <div>Sessions<br><strong id="sess-val">0</strong></div>
-            <div>Rounds<br><strong id="round-val">0</strong></div>
-            <div>Total<br><strong id="total-val">0h 0m</strong></div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.9rem; text-align: center;">
+            <div>Sessions<br><strong id="sess-val" style="font-size: 1.1rem; color: var(--accent);">0</strong></div>
+            <div>Rounds<br><strong id="round-val" style="font-size: 1.1rem; color: var(--accent);">0</strong></div>
+            <div>Total<br><strong id="total-val" style="font-size: 1.1rem; color: var(--accent);">0h 0m</strong></div>
         </div>
-    </div>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <div class="breathing-card" style="text-align: center;">Streak<br><strong id="val-streak" style="font-size: 1.2rem;">0</strong></div>
-        <div class="breathing-card" style="text-align: center;">Weekly<br><strong id="val-weekly" style="font-size: 1.2rem;">0</strong></div>
     </div>
     <div id="history-box"></div>
 </div>
@@ -101,8 +99,7 @@
 <audio id="snd-gong" preload="auto" src="https://www.soundjay.com/button/sounds/button-10.mp3"></audio>
 
 <script>
-    // PRESERVED GROK BASELINE NUMBERS
-    let db = JSON.parse(localStorage.getItem('zen_v26')) || { 
+    let db = JSON.parse(localStorage.getItem('zen_v27')) || { 
         history: [], best: 0, totalHold: 0, streak: 0, lastDate: null, weeklyLogs: [], 
         baselineBest: 152, baselineTotalHold: 14280, baselineSessions: 100, baselineRounds: 156 
     };
@@ -159,7 +156,6 @@
         isHolding = false; sounds[2].pause();
         let dur = Math.floor((Date.now() - holdStart)/1000);
         saveData(dur);
-        
         let rec = 10;
         document.getElementById('round-info').innerText = "RECOVERY";
         document.getElementById('rec-container').style.display = 'block';
@@ -169,13 +165,12 @@
             rec--;
             if (rec < 0) {
                 clearInterval(rT);
-                if (curRound < parseInt(document.getElementById('in-rounds').value)) {
-                    curRound++; runBreathing();
-                } else {
-                    isActive = false; sounds[4].play();
+                if (curRound < parseInt(document.getElementById('in-rounds').value)) { curRound++; runBreathing(); }
+                else { 
+                    isActive = false; sounds[4].play(); 
                     document.body.classList.remove('session-active');
-                    document.getElementById('round-info').innerText = "Done";
-                    document.getElementById('mainBtn').innerText = "Start Session";
+                    document.getElementById('round-info').innerText = "Done"; 
+                    document.getElementById('mainBtn').innerText = "Start Session"; 
                 }
             }
         }, 1000);
@@ -183,52 +178,31 @@
 
     function saveData(h) {
         const today = new Date().toLocaleDateString();
-        if (db.lastDate !== today) {
-            const yesterday = new Date(Date.now() - 86400000).toLocaleDateString();
-            db.streak = (db.lastDate === yesterday) ? db.streak + 1 : 1;
-            db.lastDate = today;
-            if (!db.weeklyLogs.includes(today)) db.weeklyLogs.push(today);
-        }
         db.totalHold += h; if (h > db.best) db.best = h;
         db.history.unshift({ id: Date.now(), date: today, hold: h });
-        localStorage.setItem('zen_v26', JSON.stringify(db));
-    }
-
-    function deleteItem(id) {
-        const item = db.history.find(i => i.id === id);
-        if (item) db.totalHold -= item.hold;
-        db.history = db.history.filter(i => i.id !== id);
-        localStorage.setItem('zen_v26', JSON.stringify(db));
-        renderStats();
+        localStorage.setItem('zen_v27', JSON.stringify(db));
     }
 
     function renderStats() {
-        let totalH = db.totalHold + (db.baselineTotalHold || 0);
-        let bestSec = Math.max(db.best, db.baselineBest || 0);
-        let rounds = db.history.length + (db.baselineRounds || 0);
-        let sessions = [...new Set(db.history.map(i => i.date))].length + (db.baselineSessions || 0);
-        let avgSec = rounds > 0 ? Math.round(totalH / rounds) : 0;
-        
-        document.getElementById('longest-val').innerText = `${Math.floor(bestSec/60)}:${(bestSec%60).toString().padStart(2,'0')}`;
-        document.getElementById('avg-val').innerText = `${Math.floor(avgSec/60)}:${(avgSec%60).toString().padStart(2,'0')}`;
-        document.getElementById('sess-val').innerText = sessions;
-        document.getElementById('round-val').innerText = rounds;
-        document.getElementById('total-val').innerText = `${Math.floor(totalH/3600)}h ${Math.floor((totalH%3600)/60)}m`;
-        document.getElementById('val-streak').innerText = db.streak;
-        document.getElementById('val-weekly').innerText = db.weeklyLogs.length;
+        let tH = db.totalHold + db.baselineTotalHold;
+        let bS = Math.max(db.best, db.baselineBest);
+        let rds = db.history.length + db.baselineRounds;
+        let sess = [...new Set(db.history.map(i => i.date))].length + db.baselineSessions;
+        let avgS = rds > 0 ? Math.round(tH / rds) : 0;
+        let pct = bS > 0 ? (avgS / bS) * 100 : 0;
+
+        document.getElementById('ret-bar').style.background = `linear-gradient(to right, #2c5364 ${pct}%, #0f2d37 ${pct}%)`;
+        document.getElementById('longest-val').innerText = `${Math.floor(bS/60)}:${(bS%60).toString().padStart(2,'0')}`;
+        document.getElementById('avg-val').innerText = `${Math.floor(avgS/60)}:${(avgS%60).toString().padStart(2,'0')}`;
+        document.getElementById('sess-val').innerText = sess;
+        document.getElementById('round-val').innerText = rds;
+        document.getElementById('total-val').innerText = `${Math.floor(tH/3600)}h ${Math.floor((tH%3600)/60)}m`;
 
         document.getElementById('history-box').innerHTML = db.history.slice(0, 10).map(i => `
-            <div class="history-card">
-                <div><span>${i.date}</span><br><strong>${i.hold}s Hold</strong></div>
-                <button class="del-btn" onclick="deleteItem(${i.id})">Delete</button>
-            </div>`).join('');
+            <div class="history-card"><span>${i.date}</span><strong>${i.hold}s</strong></div>`).join('');
     }
 
-    window.onload = () => { 
-        const navH = document.querySelector('.header-nav').offsetHeight;
-        document.querySelectorAll('.viewport').forEach(v => v.style.paddingTop = (navH + 20) + 'px');
-        renderStats(); 
-    };
+    window.onload = () => { renderStats(); };
 </script>
 </body>
 </html>
