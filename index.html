@@ -5,26 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ZenBreath Pro</title>
     <style>
-        :root {
-            --bg: #f8fafb; --navy: #0f2d37; --accent: #2c5364;
-            --text-dim: #636e72; --white: #ffffff; --border: #d1d8db;
-        }
-        body {
-            background: var(--bg); font-family: -apple-system, sans-serif;
-            margin: 0; color: var(--navy); display: flex; flex-direction: column; height: 100vh;
-        }
+        :root { --bg: #f8fafb; --navy: #0f2d37; --accent: #2c5364; --text-dim: #636e72; --white: #ffffff; --border: #d1d8db; }
+        body { background: var(--bg); font-family: -apple-system, sans-serif; margin: 0; color: var(--navy); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         .nav-bar { display: flex; justify-content: space-around; padding: 15px 0; background: var(--white); border-bottom: 1px solid #eee; }
         .nav-item { font-size: 0.9rem; font-weight: bold; color: var(--text-dim); cursor: pointer; padding: 5px 10px; }
         .nav-item.active { color: var(--navy); border-bottom: 2px solid var(--navy); }
         .container { flex: 1; padding: 20px; overflow-y: auto; text-align: center; }
         .hex-container {
-            width: 130px; height: 130px; background: #d1e3e8;
+            width: 140px; height: 140px; background: #d1e3e8;
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
             margin: 20px auto; display: flex; flex-direction: column; align-items: center; justify-content: center;
             font-size: 2.5rem; color: var(--accent); transition: transform 2s ease-in-out;
         }
         .expand { transform: scale(1.4); background: #b0d4de; }
-        .toggle-group { display: flex; background: #eef2f3; border-radius: 12px; padding: 5px; margin: 20px 0; }
+        .toggle-group { display: flex; background: #eef2f3; border-radius: 12px; padding: 5px; margin: 15px 0; }
         .toggle-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; background: transparent; color: var(--text-dim); font-weight: bold; font-size: 0.8rem; }
         .toggle-btn.active { background: var(--navy); color: white; }
         .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
@@ -35,7 +29,6 @@
         .stat-val { display: block; font-size: 1.2rem; font-weight: bold; color: var(--accent); }
         .stat-lab { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; }
         .history-item { background: white; padding: 12px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
-        .delete-btn { color: #e74c3c; border: none; background: none; font-size: 0.7rem; font-weight: bold; }
         .hidden { display: none !important; }
     </style>
 </head>
@@ -65,31 +58,35 @@
 
 <div id="stats-tab" class="container hidden">
     <div class="stat-grid">
-        <div class="stat-card"><span class="stat-val" id="st-total-holds">0</span><span class="stat-lab">Total Hold (m)</span></div>
+        <div class="stat-card"><span class="stat-val" id="st-total-mins">0</span><span class="stat-lab">Total Hold (m)</span></div>
         <div class="stat-card"><span class="stat-val" id="st-rounds">0</span><span class="stat-lab">Total Rounds</span></div>
         <div class="stat-card"><span class="stat-val" id="st-best">0s</span><span class="stat-lab">Personal Best</span></div>
         <div class="stat-card"><span class="stat-val" id="st-streak">0</span><span class="stat-lab">Day Streak</span></div>
     </div>
-    <h3 style="text-align: left; font-size: 1rem;">Recent Sessions</h3>
+    <h3 style="text-align: left; font-size: 1rem;">History</h3>
     <div id="history-list"></div>
 </div>
 
-<audio id="bg-music" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"></audio>
-<audio id="inhale-sn" src="https://actions.google.com/sounds/v1/human/breath_in.ogg"></audio>
-<audio id="exhale-sn" src="https://actions.google.com/sounds/v1/human/breath_out.ogg"></audio>
+<audio id="hold-music" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"></audio>
+<audio id="chime" src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg"></audio>
 <audio id="gong" src="https://actions.google.com/sounds/v1/percussion/gong.ogg"></audio>
 
 <script>
-    let stats = JSON.parse(localStorage.getItem('wh_v7_final')) || { history: [], totalSecs: 0, best: 0, streak: 0, lastDate: null };
+    let stats = JSON.parse(localStorage.getItem('wh_v8_final')) || { history: [], totalSecs: 0, best: 0, streak: 0, lastDate: null };
     let breathCount = 0; let currentRound = 1; let speed = 2000;
     let isActive = false; let holdActive = false; let holdStart;
 
     const mainBtn = document.getElementById('mainBtn');
     const bubble = document.getElementById('bubble');
-    const bgMusic = document.getElementById('bg-music');
-    const inhaleSn = document.getElementById('inhale-sn');
-    const exhaleSn = document.getElementById('exhale-sn');
+    const holdMusic = document.getElementById('hold-music');
+    const chime = document.getElementById('chime');
     const gong = document.getElementById('gong');
+
+    const coach = (text) => {
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.rate = 0.85; msg.pitch = 1.0;
+        window.speechSynthesis.speak(msg);
+    };
 
     function showTab(tab) {
         document.getElementById('practice-tab').classList.toggle('hidden', tab !== 'practice');
@@ -106,8 +103,8 @@
     }
 
     mainBtn.onclick = () => {
-        // Unlock audio on first interaction
-        [bgMusic, inhaleSn, exhaleSn, gong].forEach(s => { s.play(); s.pause(); });
+        // iPhone Audio Unlock
+        [holdMusic, chime, gong].forEach(s => { s.play(); s.pause(); });
         if (!isActive) { currentRound = 1; startSession(); }
         else if (holdActive) endHold();
     };
@@ -115,8 +112,7 @@
     function startSession() {
         const totalR = parseInt(document.getElementById('round-input').value) || 3;
         const breathsG = parseInt(document.getElementById('breath-input').value) || 30;
-        isActive = true; breathCount = 0;
-        bgMusic.play();
+        isActive = true; breathCount = 0; holdMusic.pause();
         document.getElementById('round-counter').innerText = `ROUND ${currentRound} OF ${totalR}`;
         
         let cycle = setInterval(() => {
@@ -125,15 +121,17 @@
             bubble.classList.toggle('expand');
             bubble.innerText = Math.ceil(breathCount/2);
             
-            // Sync Breathing Sound
-            if (breathCount % 2 !== 0) { inhaleSn.play(); } else { exhaleSn.play(); }
+            if (breathCount % 2 !== 0) coach("Fully in"); 
+            else coach("Let it go");
 
             if (breathCount >= (breathsG * 2)) { clearInterval(cycle); startHold(); }
         }, speed);
     }
 
     function startHold() {
-        gong.play(); holdActive = true; holdStart = Date.now();
+        chime.play();
+        setTimeout(() => holdMusic.play(), 1000);
+        holdActive = true; holdStart = Date.now();
         document.getElementById('status-text').innerText = "HOLD BREATH";
         mainBtn.innerText = "TAP TO INHALE";
         let timer = setInterval(() => {
@@ -143,47 +141,36 @@
     }
 
     function endHold() {
-        holdActive = false;
+        holdActive = false; holdMusic.pause();
         let holdTime = Math.floor((Date.now() - holdStart)/1000);
         
-        // Update Stats Logic
+        // Update Stats
         const today = new Date().toLocaleDateString();
         if (stats.lastDate !== today) {
-            if (stats.lastDate === new Date(Date.now() - 86400000).toLocaleDateString()) stats.streak++;
-            else stats.streak = 1;
+            const yesterday = new Date(Date.now() - 86400000).toLocaleDateString();
+            stats.streak = (stats.lastDate === yesterday) ? stats.streak + 1 : 1;
             stats.lastDate = today;
         }
         stats.totalSecs += holdTime;
         if (holdTime > stats.best) stats.best = holdTime;
         stats.history.unshift({ id: Date.now(), date: today, hold: holdTime });
-        localStorage.setItem('wh_v7_final', JSON.stringify(stats));
+        localStorage.setItem('wh_v8_final', JSON.stringify(stats));
 
-        gong.play();
-        document.getElementById('status-text').innerText = "RECOVERY (15s)";
+        coach("Recovery breath");
         setTimeout(() => {
             const totalR = parseInt(document.getElementById('round-input').value) || 3;
             if (currentRound < totalR) { currentRound++; startSession(); }
-            else { isActive = false; bgMusic.pause(); document.getElementById('status-text').innerText = "Complete!"; }
+            else { isActive = false; gong.play(); document.getElementById('status-text').innerText = "Session Complete"; }
         }, 15000);
     }
 
     function renderStats() {
-        document.getElementById('st-total-holds').innerText = Math.floor(stats.totalSecs / 60);
+        document.getElementById('st-total-mins').innerText = Math.floor(stats.totalSecs / 60);
         document.getElementById('st-rounds').innerText = stats.history.length;
         document.getElementById('st-best').innerText = stats.best + 's';
         document.getElementById('st-streak').innerText = stats.streak;
-        
         const list = document.getElementById('history-list');
-        list.innerHTML = '';
-        stats.history.slice(0, 10).forEach(item => {
-            list.innerHTML += `<div class="history-item"><span>${item.date}</span><strong>${item.hold}s</strong><button class="delete-btn" onclick="deleteItem(${item.id})">Del</button></div>`;
-        });
-    }
-
-    function deleteItem(id) {
-        stats.history = stats.history.filter(i => i.id !== id);
-        localStorage.setItem('wh_v7_final', JSON.stringify(stats));
-        renderStats();
+        list.innerHTML = stats.history.slice(0, 10).map(i => `<div class="history-item"><span>${i.date}</span><strong>${i.hold}s</strong></div>`).join('');
     }
 </script>
 </body>
