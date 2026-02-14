@@ -10,29 +10,30 @@
 
         body { 
             background: var(--bg); font-family: -apple-system, sans-serif; margin: 0; 
-            color: var(--text); height: 100vh; display: flex; flex-direction: column; 
-            overflow: hidden; transition: background 0.3s ease;
+            color: var(--text); min-height: 100vh; display: flex; flex-direction: column; 
+            transition: background 0.3s ease; padding-top: env(safe-area-inset-top);
         }
 
+        /* Fluid Navigation: No longer fixed to prevent cutoffs */
         .header-nav { 
-            position: fixed; top: 0; left: 0; right: 0; display: flex; justify-content: space-around; 
+            display: flex; justify-content: space-around; 
             background: var(--white); border-bottom: 1px solid var(--border); 
-            padding: env(safe-area-inset-top) 0 15px 0; z-index: 10000; 
+            padding: 15px 0; z-index: 1000; 
         }
         .nav-tab { padding: 10px 20px; font-weight: bold; color: var(--text); opacity: 0.6; cursor: pointer; font-size: 0.9rem; }
         .nav-tab.active { opacity: 1; border-bottom: 3px solid var(--accent); }
 
-        .viewport { flex: 1; overflow-y: auto; padding: 20px; text-align: center; display: flex; flex-direction: column; }
+        .viewport { flex: 1; padding: 20px; text-align: center; display: flex; flex-direction: column; overflow-y: visible; }
         .hidden { display: none !important; }
 
-        /* CENTERED FOCUS MODE */
+        /* Session Focus Mode */
         .session-active .hide-on-start, .session-active .header-nav { display: none !important; }
-        .session-active #view-practice { justify-content: center; padding: 0; }
-        .session-active .hex-container { width: 220px; height: 220px; font-size: 3.5rem; margin: 0 auto 40px auto; }
+        .session-active .viewport { justify-content: center; height: 100vh; padding: 0; }
+        .session-active .hex-container { width: 220px; height: 220px; font-size: 3.5rem; }
 
         .hex-container {
             width: 140px; height: 140px; background: #d1e3e8; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-            margin: 20px auto; display: flex; flex-direction: center; align-items: center; justify-content: center;
+            margin: 20px auto; display: flex; align-items: center; justify-content: center;
             font-size: 2.2rem; color: #2c5364; transition: transform 2s ease-in-out, width 0.5s, height 0.5s;
         }
         .expand { transform: scale(1.3); background: #b0d4de; }
@@ -40,18 +41,19 @@
         .rec-container { width: 80%; height: 12px; background: #eee; border-radius: 6px; margin: 20px auto; overflow: hidden; display: none; border: 1px solid var(--border); }
         .rec-bar { height: 100%; background: #2ecc71; width: 0%; transition: width 1s linear; }
 
-        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border); }
         .pro-input { background: #ffffff; border: 2px solid var(--border); color: var(--navy); font-weight: bold; font-size: 1.1rem; text-align: center; width: 80px; padding: 10px; border-radius: 12px; outline: none; }
 
         .btn-action { background: var(--navy); color: white; border: none; width: 90%; max-width: 400px; padding: 20px; border-radius: 15px; font-size: 1.2rem; font-weight: bold; margin: 20px auto; }
 
-        /* RESTORED STAT BAR CARD */
+        /* Stats Card Restored */
         .breathing-card { background: var(--white); padding: 20px; border-radius: 15px; margin-bottom: 20px; text-align: left; border: 1px solid var(--border); }
-        .ret-labels { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text); opacity: 0.7; margin-bottom: 8px; }
-        .ret-bar { height: 35px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; color: white; font-weight: bold; margin-bottom: 15px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
+        .ret-bar { height: 35px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; color: white; font-weight: bold; margin-bottom: 15px; }
+        
+        .history-card { background: var(--white); padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); text-align: left; }
+        .del-btn { color: var(--red); border: 1px solid #fee2e2; background: #fff5f5; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; }
         
         .theme-toggle { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; border-radius: 25px; background: var(--navy); color: white; border: none; font-size: 1.5rem; z-index: 10001; }
-        .history-card { background: var(--white); padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); }
     </style>
 </head>
 <body>
@@ -70,7 +72,7 @@
         <div class="rec-container" id="rec-container"><div class="rec-bar" id="rec-bar"></div></div>
     </div>
 
-    <div class="hide-on-start" style="margin-top: 20px;">
+    <div class="hide-on-start">
         <div class="setting-row"><span>Total Rounds</span><input type="number" id="in-rounds" class="pro-input" value="3"></div>
         <div class="setting-row"><span>Breaths per Round</span><input type="number" id="in-breaths" class="pro-input" value="30"></div>
     </div>
@@ -80,13 +82,13 @@
 
 <div id="view-stats" class="viewport hidden">
     <div class="breathing-card">
-        <h3 style="margin: 0 0 15px 0; font-size: 1.1rem;">Breathing Basics</h3>
-        <div class="ret-labels"><span>Longest Retention</span><span>Average Retention</span></div>
+        <h3 style="margin: 0 0 15px 0;">Breathing Basics</h3>
+        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; opacity: 0.7; margin-bottom: 5px;"><span>Longest Retention</span><span>Average Retention</span></div>
         <div class="ret-bar" id="ret-bar"><span id="longest-val">0:00</span><span id="avg-val">0:00</span></div>
         <div style="display: flex; justify-content: space-between; font-size: 0.9rem; text-align: center;">
-            <div>Sessions<br><strong id="sess-val" style="font-size: 1.1rem; color: var(--accent);">0</strong></div>
-            <div>Rounds<br><strong id="round-val" style="font-size: 1.1rem; color: var(--accent);">0</strong></div>
-            <div>Total<br><strong id="total-val" style="font-size: 1.1rem; color: var(--accent);">0h 0m</strong></div>
+            <div>Sessions<br><strong id="sess-val">0</strong></div>
+            <div>Rounds<br><strong id="round-val">0</strong></div>
+            <div>Total<br><strong id="total-val">0h 0m</strong></div>
         </div>
     </div>
     <div id="history-box"></div>
@@ -99,7 +101,7 @@
 <audio id="snd-gong" preload="auto" src="https://www.soundjay.com/button/sounds/button-10.mp3"></audio>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('zen_v27')) || { 
+    let db = JSON.parse(localStorage.getItem('zen_v28')) || { 
         history: [], best: 0, totalHold: 0, streak: 0, lastDate: null, weeklyLogs: [], 
         baselineBest: 152, baselineTotalHold: 14280, baselineSessions: 100, baselineRounds: 156 
     };
@@ -180,7 +182,15 @@
         const today = new Date().toLocaleDateString();
         db.totalHold += h; if (h > db.best) db.best = h;
         db.history.unshift({ id: Date.now(), date: today, hold: h });
-        localStorage.setItem('zen_v27', JSON.stringify(db));
+        localStorage.setItem('zen_v28', JSON.stringify(db));
+    }
+
+    function deleteItem(id) {
+        const item = db.history.find(i => i.id === id);
+        if (item) db.totalHold -= item.hold;
+        db.history = db.history.filter(i => i.id !== id);
+        localStorage.setItem('zen_v28', JSON.stringify(db));
+        renderStats();
     }
 
     function renderStats() {
@@ -198,11 +208,14 @@
         document.getElementById('round-val').innerText = rds;
         document.getElementById('total-val').innerText = `${Math.floor(tH/3600)}h ${Math.floor((tH%3600)/60)}m`;
 
-        document.getElementById('history-box').innerHTML = db.history.slice(0, 10).map(i => `
-            <div class="history-card"><span>${i.date}</span><strong>${i.hold}s</strong></div>`).join('');
+        document.getElementById('history-box').innerHTML = db.history.slice(0, 15).map(i => `
+            <div class="history-card">
+                <div><span>${i.date}</span><br><strong>${i.hold}s Hold</strong></div>
+                <button class="del-btn" onclick="deleteItem(${i.id})">Delete</button>
+            </div>`).join('');
     }
 
-    window.onload = () => { renderStats(); };
+    window.onload = renderStats;
 </script>
 </body>
 </html>
