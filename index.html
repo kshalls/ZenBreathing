@@ -290,7 +290,14 @@
             </div>`;
         }).join('');
     }
-    window.onload = renderStats;
+
+    window.addEventListener('load', () => {
+        const headerHeight = document.querySelector('.header-nav').offsetHeight;
+        document.querySelectorAll('.viewport').forEach(v => {
+            v.style.paddingTop = `${headerHeight + 10}px`;
+        });
+        renderStats();
+    });
 </script>
 </body>
 </html>
