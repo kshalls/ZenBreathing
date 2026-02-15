@@ -59,6 +59,11 @@
         .breathing-card { background: var(--white); padding: 20px; border-radius: 15px; margin-bottom: 20px; text-align: left; border: 1px solid var(--border); }
         .ret-bar { height: 35px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; color: white; font-weight: bold; margin-bottom: 15px; }
         
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .stat-card { background: var(--white); padding: 15px; border-radius: 15px; border: 1px solid var(--border); }
+        .stat-val { display: block; font-size: 1.4rem; font-weight: bold; color: var(--accent); }
+        .stat-lab { font-size: 0.65rem; color: var(--text); text-transform: uppercase; display: block; margin-top: 4px; opacity: 0.7; }
+        
         .history-card { background: var(--white); padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; border: 1px solid var(--border); text-align: left; }
         .session-stats-mini { font-size: 0.75rem; color: var(--accent); margin-top: 4px; display: block; opacity: 0.8; }
         .del-btn { color: var(--red); border: 1px solid #fee2e2; background: #fff5f5; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; margin-top: 5px; }
@@ -106,6 +111,12 @@
             <div>Total<br><strong id="total-val">0h 0m</strong></div>
         </div>
     </div>
+    
+    <div class="stat-grid">
+        <div class="stat-card"><span class="stat-val" id="val-daily">0</span><span class="stat-lab">Daily Streak</span></div>
+        <div class="stat-card"><span class="stat-val" id="val-weekly">0</span><span class="stat-lab">Weekly Streak</span></div>
+    </div>
+    
     <div id="history-box"></div>
 </div>
 
@@ -169,6 +180,9 @@
         isHolding = true; holdStart = Date.now();
         document.getElementById('round-info').innerText = "HOLD";
         document.getElementById('mainBtn').innerText = "TAP TO INHALE";
+        const bubble = document.getElementById('bubble');
+        bubble.classList.add('expand');
+        bubble.classList.remove('shrink');
         let hT = setInterval(() => {
             if (!isHolding) clearInterval(hT);
             else document.getElementById('bubble').innerText = Math.floor((Date.now() - holdStart)/1000) + 's';
@@ -183,6 +197,9 @@
         let rec = 10;
         document.getElementById('round-info').innerText = "RECOVERY";
         document.getElementById('rec-container').style.display = 'block';
+        const bubble = document.getElementById('bubble');
+        bubble.classList.add('expand');
+        bubble.classList.remove('shrink');
         let rT = setInterval(() => {
             document.getElementById('bubble').innerText = rec;
             document.getElementById('rec-bar').style.width = ((10-rec)*10) + '%';
@@ -220,6 +237,23 @@
         return `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
     }
 
+    function getStreaks() {
+        if (!db.history.length) return { daily: 0, weekly: 0 };
+        let dates = [...new Set(db.history.map(h => h.date))].sort((a, b) => new Date(b) - new Date(a));
+        let daily = 1;
+        let prev = new Date(dates[0]);
+        for (let i = 1; i < dates.length; i++) {
+            let curr = new Date(dates[i]);
+            let diff = Math.floor((prev - curr) / (1000 * 60 * 60 * 24));
+            if (diff === 1) {
+                daily++;
+                prev = curr;
+            } else break;
+        }
+        let weekly = Math.floor(daily / 7);
+        return { daily, weekly };
+    }
+
     function renderStats() {
         let allRounds = [];
         db.history.forEach(session => allRounds = allRounds.concat(session.roundTimes));
@@ -236,6 +270,10 @@
         document.getElementById('sess-val').innerText = sessCount; 
         document.getElementById('round-val').innerText = rds; 
         document.getElementById('total-val').innerText = `${Math.floor(tH/3600)}h ${Math.floor((tH%3600)/60)}m`;
+        
+        let streaks = getStreaks();
+        document.getElementById('val-daily').innerText = streaks.daily;
+        document.getElementById('val-weekly').innerText = streaks.weekly;
         
         document.getElementById('history-box').innerHTML = db.history.slice(0, 15).map(i => {
             let sSum = i.roundTimes.reduce((a, b) => a + b, 0);
